@@ -34,6 +34,20 @@
 #include "virutil.h"
 #include "vireventpoll.h"
 
+#include <sys/time.h>
+int clock_gettime(int /*clk_id*/ stub, struct timespec* t);
+int clock_gettime(int /*clk_id*/ stub, struct timespec* t) {
+    stub++;
+    struct timeval now;
+    int rv = gettimeofday(&now, NULL);
+    if (rv) return rv;
+    t->tv_sec  = now.tv_sec;
+    t->tv_nsec = now.tv_usec * 1000;
+    return 0;
+}
+#define CLOCK_REALTIME 0
+
+
 VIR_LOG_INIT("tests.eventtest");
 
 #define NUM_FDS 31

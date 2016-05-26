@@ -17,6 +17,8 @@
  * License along with this library.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 #include <config.h>
 
@@ -680,3 +682,4 @@ void virNetSASLSessionDispose(void *obj)
         sasl_dispose(&sasl->conn);
     VIR_FREE(sasl->callbacks);
 }
+#pragma GCC diagnostic pop
