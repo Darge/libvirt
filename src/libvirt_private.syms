@@ -117,6 +117,7 @@ virDomainVirtioSerialAddrReserve;
 virDomainVirtioSerialAddrSetAddControllers;
 virDomainVirtioSerialAddrSetCreate;
 virDomainVirtioSerialAddrSetFree;
+virDomainDeviceAddressAssignSpaprVIO;
 
 
 # conf/domain_audit.h

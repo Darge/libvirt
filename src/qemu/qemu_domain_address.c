@@ -231,7 +231,7 @@ qemuDomainAssignSpaprVIOAddresses(virDomainDefPtr def,
         if (def->nets[i]->model &&
             STREQ(def->nets[i]->model, "spapr-vlan"))
             def->nets[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO;
-        if (qemuDomainAssignSpaprVIOAddress(def, &def->nets[i]->info,
+        if (virDomainDeviceAddressAssignSpaprVIO(def, &def->nets[i]->info,
                                             VIO_ADDR_NET) < 0)
             goto cleanup;
     }
@@ -246,7 +246,7 @@ qemuDomainAssignSpaprVIOAddresses(virDomainDefPtr def,
         if (model == VIR_DOMAIN_CONTROLLER_MODEL_SCSI_IBMVSCSI &&
             def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_SCSI)
             def->controllers[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO;
-        if (qemuDomainAssignSpaprVIOAddress(def, &def->controllers[i]->info,
+        if (virDomainDeviceAddressAssignSpaprVIO(def, &def->controllers[i]->info,
                                             VIO_ADDR_SCSI) < 0)
             goto cleanup;
     }
@@ -256,7 +256,7 @@ qemuDomainAssignSpaprVIOAddresses(virDomainDefPtr def,
             ARCH_IS_PPC64(def->os.arch) &&
             STRPREFIX(def->os.machine, "pseries"))
             def->serials[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO;
-        if (qemuDomainAssignSpaprVIOAddress(def, &def->serials[i]->info,
+        if (virDomainDeviceAddressAssignSpaprVIO(def, &def->serials[i]->info,
                                             VIO_ADDR_SERIAL) < 0)
             goto cleanup;
     }
@@ -265,7 +265,7 @@ qemuDomainAssignSpaprVIOAddresses(virDomainDefPtr def,
         if (ARCH_IS_PPC64(def->os.arch) &&
             STRPREFIX(def->os.machine, "pseries"))
             def->nvram->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO;
-        if (qemuDomainAssignSpaprVIOAddress(def, &def->nvram->info,
+        if (virDomainDeviceAddressAssignSpaprVIO(def, &def->nvram->info,
                                             VIO_ADDR_NVRAM) < 0)
             goto cleanup;
     }
