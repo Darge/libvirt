@@ -236,20 +236,6 @@ qemuDomainAssignSpaprVIOAddresses(virDomainDefPtr def,
             goto cleanup;
     }
 
-    for (i = 0; i < def->ncontrollers; i++) {
-        model = def->controllers[i]->model;
-        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_SCSI) {
-            if (qemuDomainSetSCSIControllerModel(def, qemuCaps, &model) < 0)
-                goto cleanup;
-        }
-
-        if (model == VIR_DOMAIN_CONTROLLER_MODEL_SCSI_IBMVSCSI &&
-            def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_SCSI)
-            def->controllers[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO;
-        if (virDomainDeviceAddressAssignSpaprVIO(def, &def->controllers[i]->info,
-                                            VIO_ADDR_SCSI) < 0)
-            goto cleanup;
-    }
 
     for (i = 0; i < def->nserials; i++) {
         if (def->serials[i]->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_SERIAL &&
@@ -267,6 +253,21 @@ qemuDomainAssignSpaprVIOAddresses(virDomainDefPtr def,
             def->nvram->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO;
         if (virDomainDeviceAddressAssignSpaprVIO(def, &def->nvram->info,
                                             VIO_ADDR_NVRAM) < 0)
+            goto cleanup;
+    }
+
+    for (i = 0; i < def->ncontrollers; i++) {
+        model = def->controllers[i]->model;
+        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_SCSI) {
+            if (qemuDomainSetSCSIControllerModel(def, qemuCaps, &model) < 0)
+                goto cleanup;
+        }
+
+        if (model == VIR_DOMAIN_CONTROLLER_MODEL_SCSI_IBMVSCSI &&
+            def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_SCSI)
+            def->controllers[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO;
+        if (virDomainDeviceAddressAssignSpaprVIO(def, &def->controllers[i]->info,
+                                            VIO_ADDR_SCSI) < 0)
             goto cleanup;
     }
 
