@@ -93,6 +93,7 @@ virDomainCCWAddressReleaseAddr;
 virDomainCCWAddressSetCreate;
 virDomainCCWAddressSetFree;
 virDomainCCWAddressValidate;
+virDomainDeviceAddressAssignSpaprVIO;
 virDomainGetBlkioParametersAssignFromDef;
 virDomainPCIAddressAsString;
 virDomainPCIAddressBusSetModel;
@@ -117,7 +118,6 @@ virDomainVirtioSerialAddrReserve;
 virDomainVirtioSerialAddrSetAddControllers;
 virDomainVirtioSerialAddrSetCreate;
 virDomainVirtioSerialAddrSetFree;
-virDomainDeviceAddressAssignSpaprVIO;
 
 
 # conf/domain_audit.h
