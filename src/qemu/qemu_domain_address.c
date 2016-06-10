@@ -156,59 +156,6 @@ qemuDomainAssignVirtioSerialAddresses(virDomainDefPtr def,
 
 
 
-/*
- * Three steps populating CCW devnos
- * 1. Allocate empty address set
- * 2. Gather addresses with explicit devno
- * 3. Assign defaults to the rest
- */
-static int
-qemuDomainAssignS390Addresses(virDomainDefPtr def,
-                              virQEMUCapsPtr qemuCaps,
-                              virDomainObjPtr obj)
-{
-    int ret = -1;
-    virDomainCCWAddressSetPtr addrs = NULL;
-    qemuDomainObjPrivatePtr priv = NULL;
-
-    if (qemuDomainMachineIsS390CCW(def) &&
-        virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_CCW)) {
-        virDomainPrimeVirtioDeviceAddresses(
-            def, VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW);
-
-        if (!(addrs = virDomainCCWAddressSetCreate()))
-            goto cleanup;
-
-        if (virDomainDeviceInfoIterate(def, virDomainCCWAddressValidate,
-                                       addrs) < 0)
-            goto cleanup;
-
-        if (virDomainDeviceInfoIterate(def, virDomainCCWAddressAllocate,
-                                       addrs) < 0)
-            goto cleanup;
-    } else if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_S390)) {
-        /* deal with legacy virtio-s390 */
-        virDomainPrimeVirtioDeviceAddresses(
-            def, VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_S390);
-    }
-
-    if (obj && obj->privateData) {
-        priv = obj->privateData;
-        if (addrs) {
-            /* if this is the live domain object, we persist the CCW addresses*/
-            virDomainCCWAddressSetFree(priv->ccwaddrs);
-            priv->ccwaddrs = addrs;
-            addrs = NULL;
-        }
-    }
-    ret = 0;
-
- cleanup:
-    virDomainCCWAddressSetFree(addrs);
-
-    return ret;
-}
-
 
 static void
 qemuDomainAssignARMVirtioMMIOAddresses(virDomainDefPtr def,
@@ -1462,7 +1409,11 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
     if (virDomainAssignSpaprVIOAddresses(def) < 0)
         return -1;
 
-    if (qemuDomainAssignS390Addresses(def, qemuCaps, obj) < 0)
+    bool virtio_ccw_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_CCW);
+    bool virtio_s390_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_S390);
+
+    if (virDomainAssignS390Addresses(def, obj, virtio_ccw_capability,
+        virtio_s390_capability) < 0)
         return -1;
 
     qemuDomainAssignARMVirtioMMIOAddresses(def, qemuCaps);

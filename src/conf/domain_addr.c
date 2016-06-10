@@ -1261,6 +1261,7 @@ virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
 /* 
     TODO:
     - add "attribute_nonull" attributes
+    - change name of virtio_ccw_capability and the second one
 */
 
 static int
@@ -1429,4 +1430,59 @@ virDomainPrimeVirtioDeviceAddresses(virDomainDefPtr def,
                 def->fss[i]->info.type = type;
         }
     }
+}
+
+
+/*
+ * Three steps populating CCW devnos
+ * 1. Allocate empty address set
+ * 2. Gather addresses with explicit devno
+ * 3. Assign defaults to the rest
+ */
+int
+virDomainAssignS390Addresses(virDomainDefPtr def,
+                              virDomainObjPtr obj,
+                              bool virtio_ccw_capability,
+                              bool virtio_s390_capability)
+{
+    int ret = -1;
+    virDomainCCWAddressSetPtr addrs = NULL;
+    qemuDomainObjPrivatePtr priv = NULL;
+
+    if (qemuDomainMachineIsS390CCW(def) &&
+        virtio_ccw_capability) {
+        virDomainPrimeVirtioDeviceAddresses(
+            def, VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW);
+
+        if (!(addrs = virDomainCCWAddressSetCreate()))
+            goto cleanup;
+
+        if (virDomainDeviceInfoIterate(def, virDomainCCWAddressValidate,
+                                       addrs) < 0)
+            goto cleanup;
+
+        if (virDomainDeviceInfoIterate(def, virDomainCCWAddressAllocate,
+                                       addrs) < 0)
+            goto cleanup;
+    } else if (virtio_s390_capability) {
+        /* deal with legacy virtio-s390 */
+        virDomainPrimeVirtioDeviceAddresses(
+            def, VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_S390);
+    }
+
+    if (obj && obj->privateData) {
+        priv = obj->privateData;
+        if (addrs) {
+            /* if this is the live domain object, we persist the CCW addresses*/
+            virDomainCCWAddressSetFree(priv->ccwaddrs);
+            priv->ccwaddrs = addrs;
+            addrs = NULL;
+        }
+    }
+    ret = 0;
+
+ cleanup:
+    virDomainCCWAddressSetFree(addrs);
+
+    return ret;
 }

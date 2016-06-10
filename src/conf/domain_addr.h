@@ -249,4 +249,10 @@ void
 virDomainPrimeVirtioDeviceAddresses(virDomainDefPtr def,
                                      virDomainDeviceAddressType type);
 
+int
+virDomainAssignS390Addresses(virDomainDefPtr def,
+                              virDomainObjPtr obj,
+                              bool virtio_ccw_capability,
+                              bool virtio_s390_capability);
+
 #endif /* __DOMAIN_ADDR_H__ */
