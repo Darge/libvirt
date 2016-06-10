@@ -810,15 +810,6 @@ virDomainCCWAddressReleaseAddr(virDomainCCWAddressSetPtr addrs,
     return ret;
 }
 
-void virDomainCCWAddressSetFree(virDomainCCWAddressSetPtr addrs)
-{
-    if (!addrs)
-        return;
-
-    virHashFree(addrs->defined);
-    VIR_FREE(addrs);
-}
-
 virDomainCCWAddressSetPtr
 virDomainCCWAddressSetCreate(void)
 {
@@ -1262,6 +1253,10 @@ virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
     TODO:
     - add "attribute_nonull" attributes
     - change name of virtio_ccw_capability and the second one
+    - deal with qemuDomainMachineIsS390CCW(), because its qemu specific now.
+      is it really qemu-specific?
+    - use virDomainCCWAddressSetFree(priv->ccwaddrs); somewhere
+      make sure it's used in every place where previously the private data was cleared
 */
 
 static int
@@ -1447,9 +1442,8 @@ virDomainAssignS390Addresses(virDomainDefPtr def,
 {
     int ret = -1;
     virDomainCCWAddressSetPtr addrs = NULL;
-    qemuDomainObjPrivatePtr priv = NULL;
 
-    if (qemuDomainMachineIsS390CCW(def) &&
+    if (virDomainMachineIsS390CCW(def) &&
         virtio_ccw_capability) {
         virDomainPrimeVirtioDeviceAddresses(
             def, VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW);
@@ -1470,12 +1464,11 @@ virDomainAssignS390Addresses(virDomainDefPtr def,
             def, VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_S390);
     }
 
-    if (obj && obj->privateData) {
-        priv = obj->privateData;
+    if (obj) {
         if (addrs) {
             /* if this is the live domain object, we persist the CCW addresses*/
-            virDomainCCWAddressSetFree(priv->ccwaddrs);
-            priv->ccwaddrs = addrs;
+            virDomainCCWAddressSetFree(obj->ccwaddrs);
+            obj->ccwaddrs = addrs;
             addrs = NULL;
         }
     }
@@ -1485,4 +1478,10 @@ virDomainAssignS390Addresses(virDomainDefPtr def,
     virDomainCCWAddressSetFree(addrs);
 
     return ret;
+}
+
+bool
+virDomainMachineIsS390CCW(const virDomainDef *def)
+{
+    return STRPREFIX(def->os.machine, "s390-ccw");
 }

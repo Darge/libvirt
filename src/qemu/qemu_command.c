@@ -1023,7 +1023,7 @@ qemuCheckCCWS390AddressSupport(const virDomainDef *def,
                                const char *devicename)
 {
     if (info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW) {
-        if (!qemuDomainMachineIsS390CCW(def)) {
+        if (!virDomainMachineIsS390CCW(def)) {
             virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
                            _("cannot use CCW address type for device "
                              "'%s' using machine type '%s'"),

@@ -97,6 +97,7 @@ virDomainCCWAddressSetFree;
 virDomainCCWAddressValidate;
 virDomainDeviceAddressAssignSpaprVIO;
 virDomainGetBlkioParametersAssignFromDef;
+virDomainMachineIsS390CCW;
 virDomainPCIAddressAsString;
 virDomainPCIAddressBusSetModel;
 virDomainPCIAddressEnsureAddr;

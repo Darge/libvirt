@@ -749,6 +749,13 @@ struct _virDomainControllerDef {
     virDomainDeviceInfo info;
 };
 
+struct _virDomainCCWAddressSet {
+    virHashTablePtr defined;
+    virDomainDeviceCCWAddress next;
+};
+typedef struct _virDomainCCWAddressSet virDomainCCWAddressSet;
+typedef virDomainCCWAddressSet *virDomainCCWAddressSetPtr;
+
 
 /* Types of disk backends */
 typedef enum {
@@ -2320,6 +2327,8 @@ struct _virDomainObj {
     void *privateData;
     void (*privateDataFreeFunc)(void *);
 
+    virDomainCCWAddressSetPtr ccwaddrs;
+
     int taint;
 
     unsigned long long original_memlock; /* Original RLIMIT_MEMLOCK, zero if no
@@ -2519,6 +2528,7 @@ void virDomainDefClearPCIAddresses(virDomainDefPtr def);
 void virDomainDefClearCCWAddresses(virDomainDefPtr def);
 void virDomainDefClearDeviceAliases(virDomainDefPtr def);
 void virDomainTPMDefFree(virDomainTPMDefPtr def);
+void virDomainCCWAddressSetFree(virDomainCCWAddressSetPtr addrs);
 
 typedef int (*virDomainDeviceInfoCallback)(virDomainDefPtr def,
                                            virDomainDeviceDefPtr dev,

@@ -1248,7 +1248,6 @@ qemuDomainObjPrivateFree(void *data)
 
     virCgroupFree(&priv->cgroup);
     virDomainPCIAddressSetFree(priv->pciaddrs);
-    virDomainCCWAddressSetFree(priv->ccwaddrs);
     virDomainVirtioSerialAddrSetFree(priv->vioserialaddrs);
     virDomainChrSourceDefFree(priv->monConfig);
     qemuDomainObjFreeJob(priv);
@@ -4893,13 +4892,6 @@ qemuDomainMachineNeedsFDC(const virDomainDef *def)
         return true;
     }
     return false;
-}
-
-
-bool
-qemuDomainMachineIsS390CCW(const virDomainDef *def)
-{
-    return STRPREFIX(def->os.machine, "s390-ccw");
 }
 
 

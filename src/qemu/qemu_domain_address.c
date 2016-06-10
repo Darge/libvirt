@@ -1436,9 +1436,9 @@ qemuDomainReleaseDeviceAddress(virDomainObjPtr vm,
         devstr = info->alias;
 
     if (info->type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW &&
-        qemuDomainMachineIsS390CCW(vm->def) &&
+        virDomainMachineIsS390CCW(vm->def) &&
         virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW) &&
-        virDomainCCWAddressReleaseAddr(priv->ccwaddrs, info) < 0)
+        virDomainCCWAddressReleaseAddr(vm->ccwaddrs, info) < 0)
         VIR_WARN("Unable to release CCW address on %s",
                  NULLSTR(devstr));
     else if (virDeviceInfoPCIAddressPresent(info) &&

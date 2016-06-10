@@ -2232,6 +2232,15 @@ void virDomainTPMDefFree(virDomainTPMDefPtr def)
     VIR_FREE(def);
 }
 
+void virDomainCCWAddressSetFree(virDomainCCWAddressSetPtr addrs)
+{
+    if (!addrs)
+        return;
+
+    virHashFree(addrs->defined);
+    VIR_FREE(addrs);
+}
+
 void virDomainHostdevDefFree(virDomainHostdevDefPtr def)
 {
     if (!def)
@@ -2689,9 +2698,11 @@ static void virDomainObjDispose(void *obj)
     virCondDestroy(&dom->cond);
     virDomainDefFree(dom->def);
     virDomainDefFree(dom->newDef);
+    virDomainCCWAddressSetFree(dom->ccwaddrs);
 
     if (dom->privateDataFreeFunc)
         (dom->privateDataFreeFunc)(dom->privateData);
+
 
     virDomainSnapshotObjListFree(dom->snapshots);
 }

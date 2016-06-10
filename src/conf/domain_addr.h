@@ -157,13 +157,6 @@ int virDomainPCIAddressReserveNextSlot(virDomainPCIAddressSetPtr addrs,
                                        virDomainPCIConnectFlags flags)
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
 
-struct _virDomainCCWAddressSet {
-    virHashTablePtr defined;
-    virDomainDeviceCCWAddress next;
-};
-typedef struct _virDomainCCWAddressSet virDomainCCWAddressSet;
-typedef virDomainCCWAddressSet *virDomainCCWAddressSetPtr;
-
 int virDomainCCWAddressAssign(virDomainDeviceInfoPtr dev,
                               virDomainCCWAddressSetPtr addrs,
                               bool autoassign)
@@ -254,5 +247,9 @@ virDomainAssignS390Addresses(virDomainDefPtr def,
                               virDomainObjPtr obj,
                               bool virtio_ccw_capability,
                               bool virtio_s390_capability);
+
+bool
+virDomainMachineIsS390CCW(const virDomainDef *def);
+
 
 #endif /* __DOMAIN_ADDR_H__ */
