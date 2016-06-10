@@ -1255,11 +1255,10 @@ virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
 /* WORK IN PROGRESS */
 /* 
     TODO:
-    - change name of qemuDomainSpaprVIOFindByReg
 */
 
 static int
-qemuDomainSpaprVIOFindByReg(virDomainDefPtr def ATTRIBUTE_UNUSED,
+virDomainSpaprVIOFindByReg(virDomainDefPtr def ATTRIBUTE_UNUSED,
                             virDomainDeviceDefPtr device ATTRIBUTE_UNUSED,
                             virDomainDeviceInfoPtr info, void *opaque)
 {
@@ -1295,7 +1294,7 @@ virDomainDeviceAddressAssignSpaprVIO(virDomainDefPtr def,
         info->addr.spaprvio.has_reg = true;
     }
 
-    ret = virDomainDeviceInfoIterate(def, qemuDomainSpaprVIOFindByReg, info);
+    ret = virDomainDeviceInfoIterate(def, virDomainSpaprVIOFindByReg, info);
     while (ret != 0) {
         if (user_reg) {
             virReportError(VIR_ERR_XML_ERROR,
@@ -1306,9 +1305,10 @@ virDomainDeviceAddressAssignSpaprVIO(virDomainDefPtr def,
 
         /* We assigned the reg, so try a new value */
         info->addr.spaprvio.reg += 0x1000;
-        ret = virDomainDeviceInfoIterate(def, qemuDomainSpaprVIOFindByReg,
+        ret = virDomainDeviceInfoIterate(def, virDomainSpaprVIOFindByReg,
                                          info);
     }
 
     return 0;
 }
+
