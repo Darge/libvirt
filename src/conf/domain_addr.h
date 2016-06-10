@@ -242,4 +242,7 @@ virDomainDeviceAddressAssignSpaprVIO(virDomainDefPtr def,
                                 virDomainDeviceInfoPtr info,
                                 unsigned long long default_reg);
 
+int
+virDomainAssignSpaprVIOAddresses(virDomainDefPtr def);
+
 #endif /* __DOMAIN_ADDR_H__ */

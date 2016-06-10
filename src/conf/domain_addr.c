@@ -32,6 +32,11 @@
 
 VIR_LOG_INIT("conf.domain_addr");
 
+#define VIO_ADDR_NET 0x1000ul
+#define VIO_ADDR_SCSI 0x2000ul
+#define VIO_ADDR_SERIAL 0x30000000ul
+#define VIO_ADDR_NVRAM 0x3000ul
+
 virDomainPCIConnectFlags
 virDomainPCIControllerModelToConnectType(virDomainControllerModelPCI model)
 {
@@ -1255,6 +1260,7 @@ virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
 /* WORK IN PROGRESS */
 /* 
     TODO:
+    - add "attribute_nonull" attributes
 */
 
 static int
@@ -1275,6 +1281,7 @@ virDomainSpaprVIOFindByReg(virDomainDefPtr def ATTRIBUTE_UNUSED,
 
     return 0;
 }
+
 
 int
 virDomainDeviceAddressAssignSpaprVIO(virDomainDefPtr def,
@@ -1310,5 +1317,56 @@ virDomainDeviceAddressAssignSpaprVIO(virDomainDefPtr def,
     }
 
     return 0;
+}
+
+
+int
+virDomainAssignSpaprVIOAddresses(virDomainDefPtr def)
+{
+    size_t i;
+    int ret = -1;
+
+    /* Default values match QEMU. See spapr_(llan|vscsi|vty).c */
+
+    for (i = 0; i < def->nnets; i++) {
+        if (def->nets[i]->model &&
+            STREQ(def->nets[i]->model, "spapr-vlan"))
+            def->nets[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO;
+        if (virDomainDeviceAddressAssignSpaprVIO(def, &def->nets[i]->info,
+                                            VIO_ADDR_NET) < 0)
+            goto cleanup;
+    }
+
+    for (i = 0; i < def->ncontrollers; i++) {
+        if (virDomainDeviceAddressAssignSpaprVIO(def, &def->controllers[i]->info,
+                                            VIO_ADDR_SCSI) < 0)
+            goto cleanup;
+    }
+
+    for (i = 0; i < def->nserials; i++) {
+        if (def->serials[i]->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_SERIAL &&
+            ARCH_IS_PPC64(def->os.arch) &&
+            STRPREFIX(def->os.machine, "pseries"))
+            def->serials[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO;
+        if (virDomainDeviceAddressAssignSpaprVIO(def, &def->serials[i]->info,
+                                            VIO_ADDR_SERIAL) < 0)
+            goto cleanup;
+    }
+
+    if (def->nvram) {
+        if (ARCH_IS_PPC64(def->os.arch) &&
+            STRPREFIX(def->os.machine, "pseries"))
+            def->nvram->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO;
+        if (virDomainDeviceAddressAssignSpaprVIO(def, &def->nvram->info,
+                                            VIO_ADDR_NVRAM) < 0)
+            goto cleanup;
+    }
+
+    /* No other devices are currently supported on spapr-vio */
+
+    ret = 0;
+
+ cleanup:
+    return ret;
 }
 

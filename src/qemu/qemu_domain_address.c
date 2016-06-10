@@ -160,77 +160,6 @@ qemuDomainAssignVirtioSerialAddresses(virDomainDefPtr def,
 }
 
 
-static int
-qemuDomainSpaprVIOFindByReg(virDomainDefPtr def ATTRIBUTE_UNUSED,
-                            virDomainDeviceDefPtr device ATTRIBUTE_UNUSED,
-                            virDomainDeviceInfoPtr info, void *opaque)
-{
-    virDomainDeviceInfoPtr target = opaque;
-
-    if (info->type != VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO)
-        return 0;
-
-    /* Match a dev that has a reg, is not us, and has a matching reg */
-    if (info->addr.spaprvio.has_reg && info != target &&
-        info->addr.spaprvio.reg == target->addr.spaprvio.reg)
-        /* Has to be < 0 so virDomainDeviceInfoIterate() will exit */
-        return -1;
-
-    return 0;
-}
-
-
-static int
-qemuDomainAssignSpaprVIOAddresses(virDomainDefPtr def)
-{
-    size_t i;
-    int ret = -1;
-
-    /* Default values match QEMU. See spapr_(llan|vscsi|vty).c */
-
-    for (i = 0; i < def->nnets; i++) {
-        if (def->nets[i]->model &&
-            STREQ(def->nets[i]->model, "spapr-vlan"))
-            def->nets[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO;
-        if (virDomainDeviceAddressAssignSpaprVIO(def, &def->nets[i]->info,
-                                            VIO_ADDR_NET) < 0)
-            goto cleanup;
-    }
-
-    for (i = 0; i < def->ncontrollers; i++) {
-        if (virDomainDeviceAddressAssignSpaprVIO(def, &def->controllers[i]->info,
-                                            VIO_ADDR_SCSI) < 0)
-            goto cleanup;
-    }
-
-    for (i = 0; i < def->nserials; i++) {
-        if (def->serials[i]->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_SERIAL &&
-            ARCH_IS_PPC64(def->os.arch) &&
-            STRPREFIX(def->os.machine, "pseries"))
-            def->serials[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO;
-        if (virDomainDeviceAddressAssignSpaprVIO(def, &def->serials[i]->info,
-                                            VIO_ADDR_SERIAL) < 0)
-            goto cleanup;
-    }
-
-    if (def->nvram) {
-        if (ARCH_IS_PPC64(def->os.arch) &&
-            STRPREFIX(def->os.machine, "pseries"))
-            def->nvram->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO;
-        if (virDomainDeviceAddressAssignSpaprVIO(def, &def->nvram->info,
-                                            VIO_ADDR_NVRAM) < 0)
-            goto cleanup;
-    }
-
-    /* No other devices are currently supported on spapr-vio */
-
-    ret = 0;
-
- cleanup:
-    return ret;
-}
-
-
 static void
 qemuDomainPrimeVirtioDeviceAddresses(virDomainDefPtr def,
                                      virDomainDeviceAddressType type)
@@ -1595,7 +1524,7 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
             def->controllers[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO;
     }
 
-    if (qemuDomainAssignSpaprVIOAddresses(def) < 0)
+    if (virDomainAssignSpaprVIOAddresses(def) < 0)
         return -1;
 
     if (qemuDomainAssignS390Addresses(def, qemuCaps, obj) < 0)
