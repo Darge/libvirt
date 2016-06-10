@@ -1251,3 +1251,64 @@ virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
     VIR_FREE(str);
     return ret;
 }
+
+/* WORK IN PROGRESS */
+/* 
+    TODO:
+    - change name of qemuDomainSpaprVIOFindByReg
+*/
+
+static int
+qemuDomainSpaprVIOFindByReg(virDomainDefPtr def ATTRIBUTE_UNUSED,
+                            virDomainDeviceDefPtr device ATTRIBUTE_UNUSED,
+                            virDomainDeviceInfoPtr info, void *opaque)
+{
+    virDomainDeviceInfoPtr target = opaque;
+
+    if (info->type != VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO)
+        return 0;
+
+    /* Match a dev that has a reg, is not us, and has a matching reg */
+    if (info->addr.spaprvio.has_reg && info != target &&
+        info->addr.spaprvio.reg == target->addr.spaprvio.reg)
+        /* Has to be < 0 so virDomainDeviceInfoIterate() will exit */
+        return -1;
+
+    return 0;
+}
+
+int
+virDomainDeviceAddressAssignSpaprVIO(virDomainDefPtr def,
+                                virDomainDeviceInfoPtr info,
+                                unsigned long long default_reg)
+{
+    bool user_reg;
+    int ret;
+
+    if (info->type != VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO)
+        return 0;
+
+    /* Check if the user has assigned the reg already, if so use it */
+    user_reg = info->addr.spaprvio.has_reg;
+    if (!user_reg) {
+        info->addr.spaprvio.reg = default_reg;
+        info->addr.spaprvio.has_reg = true;
+    }
+
+    ret = virDomainDeviceInfoIterate(def, qemuDomainSpaprVIOFindByReg, info);
+    while (ret != 0) {
+        if (user_reg) {
+            virReportError(VIR_ERR_XML_ERROR,
+                           _("spapr-vio address %#llx already in use"),
+                           info->addr.spaprvio.reg);
+            return -EEXIST;
+        }
+
+        /* We assigned the reg, so try a new value */
+        info->addr.spaprvio.reg += 0x1000;
+        ret = virDomainDeviceInfoIterate(def, qemuDomainSpaprVIOFindByReg,
+                                         info);
+    }
+
+    return 0;
+}
