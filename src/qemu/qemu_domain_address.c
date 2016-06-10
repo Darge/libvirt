@@ -181,49 +181,10 @@ qemuDomainSpaprVIOFindByReg(virDomainDefPtr def ATTRIBUTE_UNUSED,
 
 
 static int
-qemuDomainAssignSpaprVIOAddress(virDomainDefPtr def,
-                                virDomainDeviceInfoPtr info,
-                                unsigned long long default_reg)
-{
-    bool user_reg;
-    int ret;
-
-    if (info->type != VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO)
-        return 0;
-
-    /* Check if the user has assigned the reg already, if so use it */
-    user_reg = info->addr.spaprvio.has_reg;
-    if (!user_reg) {
-        info->addr.spaprvio.reg = default_reg;
-        info->addr.spaprvio.has_reg = true;
-    }
-
-    ret = virDomainDeviceInfoIterate(def, qemuDomainSpaprVIOFindByReg, info);
-    while (ret != 0) {
-        if (user_reg) {
-            virReportError(VIR_ERR_XML_ERROR,
-                           _("spapr-vio address %#llx already in use"),
-                           info->addr.spaprvio.reg);
-            return -EEXIST;
-        }
-
-        /* We assigned the reg, so try a new value */
-        info->addr.spaprvio.reg += 0x1000;
-        ret = virDomainDeviceInfoIterate(def, qemuDomainSpaprVIOFindByReg,
-                                         info);
-    }
-
-    return 0;
-}
-
-
-static int
-qemuDomainAssignSpaprVIOAddresses(virDomainDefPtr def,
-                                  virQEMUCapsPtr qemuCaps)
+qemuDomainAssignSpaprVIOAddresses(virDomainDefPtr def)
 {
     size_t i;
     int ret = -1;
-    int model;
 
     /* Default values match QEMU. See spapr_(llan|vscsi|vty).c */
 
@@ -237,15 +198,6 @@ qemuDomainAssignSpaprVIOAddresses(virDomainDefPtr def,
     }
 
     for (i = 0; i < def->ncontrollers; i++) {
-        model = def->controllers[i]->model;
-        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_SCSI) {
-            if (qemuDomainSetSCSIControllerModel(def, qemuCaps, &model) < 0)
-                goto cleanup;
-        }
-
-        if (model == VIR_DOMAIN_CONTROLLER_MODEL_SCSI_IBMVSCSI &&
-            def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_SCSI)
-            def->controllers[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO;
         if (virDomainDeviceAddressAssignSpaprVIO(def, &def->controllers[i]->info,
                                             VIO_ADDR_SCSI) < 0)
             goto cleanup;
@@ -1624,10 +1576,26 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
                           virQEMUCapsPtr qemuCaps,
                           virDomainObjPtr obj)
 {
+    size_t i;
+    int model;
+
     if (qemuDomainAssignVirtioSerialAddresses(def, obj) < 0)
         return -1;
 
-    if (qemuDomainAssignSpaprVIOAddresses(def, qemuCaps) < 0)
+    /* Part of pre-address-assignment-stuff */
+    for (i = 0; i < def->ncontrollers; i++) {
+        model = def->controllers[i]->model;
+        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_SCSI) {
+            if (qemuDomainSetSCSIControllerModel(def, qemuCaps, &model) < 0)
+                return -1;
+        }
+
+        if (model == VIR_DOMAIN_CONTROLLER_MODEL_SCSI_IBMVSCSI &&
+            def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_SCSI)
+            def->controllers[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_SPAPRVIO;
+    }
+
+    if (qemuDomainAssignSpaprVIOAddresses(def) < 0)
         return -1;
 
     if (qemuDomainAssignS390Addresses(def, qemuCaps, obj) < 0)
