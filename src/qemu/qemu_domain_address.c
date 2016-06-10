@@ -33,11 +33,6 @@
 
 VIR_LOG_INIT("qemu.qemu_domain_address");
 
-#define VIO_ADDR_NET 0x1000ul
-#define VIO_ADDR_SCSI 0x2000ul
-#define VIO_ADDR_SERIAL 0x30000000ul
-#define VIO_ADDR_NVRAM 0x3000ul
-
 
 int
 qemuDomainSetSCSIControllerModel(const virDomainDef *def,
@@ -160,66 +155,6 @@ qemuDomainAssignVirtioSerialAddresses(virDomainDefPtr def,
 }
 
 
-static void
-qemuDomainPrimeVirtioDeviceAddresses(virDomainDefPtr def,
-                                     virDomainDeviceAddressType type)
-{
-    /*
-       declare address-less virtio devices to be of address type 'type'
-       disks, networks, consoles, controllers, memballoon and rng in this
-       order
-       if type is ccw filesystem devices are declared to be of address type ccw
-    */
-    size_t i;
-
-    for (i = 0; i < def->ndisks; i++) {
-        if (def->disks[i]->bus == VIR_DOMAIN_DISK_BUS_VIRTIO &&
-            def->disks[i]->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE)
-            def->disks[i]->info.type = type;
-    }
-
-    for (i = 0; i < def->nnets; i++) {
-        if (STREQ(def->nets[i]->model, "virtio") &&
-            def->nets[i]->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE) {
-            def->nets[i]->info.type = type;
-        }
-    }
-
-    for (i = 0; i < def->ninputs; i++) {
-        if (def->inputs[i]->bus == VIR_DOMAIN_DISK_BUS_VIRTIO &&
-            def->inputs[i]->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE)
-            def->inputs[i]->info.type = type;
-    }
-
-    for (i = 0; i < def->ncontrollers; i++) {
-        if ((def->controllers[i]->type ==
-             VIR_DOMAIN_CONTROLLER_TYPE_VIRTIO_SERIAL ||
-             def->controllers[i]->type ==
-             VIR_DOMAIN_CONTROLLER_TYPE_SCSI) &&
-            def->controllers[i]->info.type ==
-            VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE)
-            def->controllers[i]->info.type = type;
-    }
-
-    if (def->memballoon &&
-        def->memballoon->model == VIR_DOMAIN_MEMBALLOON_MODEL_VIRTIO &&
-        def->memballoon->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE)
-        def->memballoon->info.type = type;
-
-    for (i = 0; i < def->nrngs; i++) {
-        if (def->rngs[i]->model == VIR_DOMAIN_RNG_MODEL_VIRTIO &&
-            def->rngs[i]->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE)
-            def->rngs[i]->info.type = type;
-    }
-
-    if (type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW) {
-        for (i = 0; i < def->nfss; i++) {
-            if (def->fss[i]->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE)
-                def->fss[i]->info.type = type;
-        }
-    }
-}
-
 
 /*
  * Three steps populating CCW devnos
@@ -238,7 +173,7 @@ qemuDomainAssignS390Addresses(virDomainDefPtr def,
 
     if (qemuDomainMachineIsS390CCW(def) &&
         virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_CCW)) {
-        qemuDomainPrimeVirtioDeviceAddresses(
+        virDomainPrimeVirtioDeviceAddresses(
             def, VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW);
 
         if (!(addrs = virDomainCCWAddressSetCreate()))
@@ -253,7 +188,7 @@ qemuDomainAssignS390Addresses(virDomainDefPtr def,
             goto cleanup;
     } else if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_S390)) {
         /* deal with legacy virtio-s390 */
-        qemuDomainPrimeVirtioDeviceAddresses(
+        virDomainPrimeVirtioDeviceAddresses(
             def, VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_S390);
     }
 
@@ -288,7 +223,7 @@ qemuDomainAssignARMVirtioMMIOAddresses(virDomainDefPtr def,
         return;
 
     if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO)) {
-        qemuDomainPrimeVirtioDeviceAddresses(
+        virDomainPrimeVirtioDeviceAddresses(
             def, VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_MMIO);
     }
 }

@@ -245,4 +245,8 @@ virDomainDeviceAddressAssignSpaprVIO(virDomainDefPtr def,
 int
 virDomainAssignSpaprVIOAddresses(virDomainDefPtr def);
 
+void
+virDomainPrimeVirtioDeviceAddresses(virDomainDefPtr def,
+                                     virDomainDeviceAddressType type);
+
 #endif /* __DOMAIN_ADDR_H__ */
