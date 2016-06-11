@@ -1238,6 +1238,7 @@ virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
       Make sure it's used in every place where previously the private data was cleared.
     - I am skeptical about vm->def->vioserialaddrs, because how do we know that we
       really want to refer to def and not the new def?
+      The same question applies to vm->def->ccwaddrs.
 */
 
 static int
