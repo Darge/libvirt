@@ -155,27 +155,6 @@ qemuDomainAssignVirtioSerialAddresses(virDomainDefPtr def,
 }
 
 
-
-
-static void
-qemuDomainAssignARMVirtioMMIOAddresses(virDomainDefPtr def,
-                                       virQEMUCapsPtr qemuCaps)
-{
-    if (def->os.arch != VIR_ARCH_ARMV7L &&
-        def->os.arch != VIR_ARCH_AARCH64)
-        return;
-
-    if (!(STRPREFIX(def->os.machine, "vexpress-") ||
-          virDomainMachineIsVirt(def)))
-        return;
-
-    if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO)) {
-        virDomainPrimeVirtioDeviceAddresses(
-            def, VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_MMIO);
-    }
-}
-
-
 static int
 qemuDomainCollectPCIAddress(virDomainDefPtr def ATTRIBUTE_UNUSED,
                             virDomainDeviceDefPtr device,
@@ -1389,6 +1368,9 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
 {
     size_t i;
     int model;
+    bool virtio_ccw_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_CCW);
+    bool virtio_s390_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_S390);
+    bool virtio_mmio_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO);
 
     if (qemuDomainAssignVirtioSerialAddresses(def, obj) < 0)
         return -1;
@@ -1409,14 +1391,11 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
     if (virDomainAssignSpaprVIOAddresses(def) < 0)
         return -1;
 
-    bool virtio_ccw_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_CCW);
-    bool virtio_s390_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_S390);
-
     if (virDomainAssignS390Addresses(def, obj, virtio_ccw_capability,
         virtio_s390_capability) < 0)
         return -1;
 
-    qemuDomainAssignARMVirtioMMIOAddresses(def, qemuCaps);
+    virDomainAssignARMVirtioMMIOAddresses(def, virtio_mmio_capability);
 
     if (qemuDomainAssignPCIAddresses(def, qemuCaps, obj) < 0)
         return -1;

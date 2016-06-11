@@ -1251,12 +1251,13 @@ virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
 /* WORK IN PROGRESS */
 /* 
     TODO:
-    - add "attribute_nonull" attributes
-    - change name of virtio_ccw_capability and the second one
-    - deal with qemuDomainMachineIsS390CCW(), because its qemu specific now.
-      is it really qemu-specific?
-    - use virDomainCCWAddressSetFree(priv->ccwaddrs); somewhere
-      make sure it's used in every place where previously the private data was cleared
+    - Add "attribute_nonull" attributes.
+    - Change name of virtio_ccw_capability and the second one.
+    - Deal with qemuDomainMachineIsS390CCW(), because its qemu specific now.
+      Is it really qemu-specific? Same question applies to a few other functions
+      I moved.
+    - Use virDomainCCWAddressSetFree(priv->ccwaddrs); somewhere.
+      Make sure it's used in every place where previously the private data was cleared.
 */
 
 static int
@@ -1480,11 +1481,13 @@ virDomainAssignS390Addresses(virDomainDefPtr def,
     return ret;
 }
 
+
 bool
 virDomainMachineIsS390CCW(const virDomainDef *def)
 {
     return STRPREFIX(def->os.machine, "s390-ccw");
 }
+
 
 bool
 virDomainMachineIsVirt(const virDomainDef *def)
@@ -1493,3 +1496,21 @@ virDomainMachineIsVirt(const virDomainDef *def)
            STRPREFIX(def->os.machine, "virt-");
 }
 
+
+void
+virDomainAssignARMVirtioMMIOAddresses(virDomainDefPtr def,
+                                       bool virtio_mmio_capability)
+{
+    if (def->os.arch != VIR_ARCH_ARMV7L &&
+        def->os.arch != VIR_ARCH_AARCH64)
+        return;
+
+    if (!(STRPREFIX(def->os.machine, "vexpress-") ||
+          virDomainMachineIsVirt(def)))
+        return;
+
+    if (virtio_mmio_capability) {
+        virDomainPrimeVirtioDeviceAddresses(
+            def, VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_MMIO);
+    }
+}

@@ -87,6 +87,7 @@ virPCIDeviceAddressParseXML;
 
 
 # conf/domain_addr.h
+virDomainAssignARMVirtioMMIOAddresses;
 virDomainAssignS390Addresses;
 virDomainAssignSpaprVIOAddresses;
 virDomainCCWAddressAllocate;

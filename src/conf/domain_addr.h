@@ -254,5 +254,9 @@ virDomainMachineIsS390CCW(const virDomainDef *def);
 bool
 virDomainMachineIsVirt(const virDomainDef *def);
 
+void
+virDomainAssignARMVirtioMMIOAddresses(virDomainDefPtr def,
+                                       bool virtio_mmio_capability);
+
 
 #endif /* __DOMAIN_ADDR_H__ */
