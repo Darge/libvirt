@@ -90,6 +90,7 @@ virPCIDeviceAddressParseXML;
 virDomainAssignARMVirtioMMIOAddresses;
 virDomainAssignS390Addresses;
 virDomainAssignSpaprVIOAddresses;
+virDomainAssignVirtioSerialAddresses;
 virDomainCCWAddressAllocate;
 virDomainCCWAddressAssign;
 virDomainCCWAddressReleaseAddr;
@@ -124,6 +125,7 @@ virDomainVirtioSerialAddrReserve;
 virDomainVirtioSerialAddrSetAddControllers;
 virDomainVirtioSerialAddrSetCreate;
 virDomainVirtioSerialAddrSetFree;
+virDomainVirtioSerialControllerFree;
 
 
 # conf/domain_audit.h

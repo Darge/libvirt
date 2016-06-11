@@ -102,60 +102,6 @@ qemuDomainSetSCSIControllerModel(const virDomainDef *def,
 
 
 static int
-qemuDomainAssignVirtioSerialAddresses(virDomainDefPtr def,
-                                      virDomainObjPtr obj)
-{
-    int ret = -1;
-    size_t i;
-    virDomainVirtioSerialAddrSetPtr addrs = NULL;
-    qemuDomainObjPrivatePtr priv = NULL;
-
-    if (!(addrs = virDomainVirtioSerialAddrSetCreate()))
-        goto cleanup;
-
-    if (virDomainVirtioSerialAddrSetAddControllers(addrs, def) < 0)
-        goto cleanup;
-
-    if (virDomainDeviceInfoIterate(def, virDomainVirtioSerialAddrReserve,
-                                   addrs) < 0)
-        goto cleanup;
-
-    VIR_DEBUG("Finished reserving existing ports");
-
-    for (i = 0; i < def->nconsoles; i++) {
-        virDomainChrDefPtr chr = def->consoles[i];
-        if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_CONSOLE &&
-            chr->targetType == VIR_DOMAIN_CHR_CONSOLE_TARGET_TYPE_VIRTIO &&
-            !virDomainVirtioSerialAddrIsComplete(&chr->info) &&
-            virDomainVirtioSerialAddrAutoAssign(def, addrs, &chr->info, true) < 0)
-            goto cleanup;
-    }
-
-    for (i = 0; i < def->nchannels; i++) {
-        virDomainChrDefPtr chr = def->channels[i];
-        if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_CHANNEL &&
-            chr->targetType == VIR_DOMAIN_CHR_CHANNEL_TARGET_TYPE_VIRTIO &&
-            !virDomainVirtioSerialAddrIsComplete(&chr->info) &&
-            virDomainVirtioSerialAddrAutoAssign(def, addrs, &chr->info, false) < 0)
-            goto cleanup;
-    }
-
-    if (obj && obj->privateData) {
-        priv = obj->privateData;
-        /* if this is the live domain object, we persist the addresses */
-        virDomainVirtioSerialAddrSetFree(priv->vioserialaddrs);
-        priv->vioserialaddrs = addrs;
-        addrs = NULL;
-    }
-    ret = 0;
-
- cleanup:
-    virDomainVirtioSerialAddrSetFree(addrs);
-    return ret;
-}
-
-
-static int
 qemuDomainCollectPCIAddress(virDomainDefPtr def ATTRIBUTE_UNUSED,
                             virDomainDeviceDefPtr device,
                             virDomainDeviceInfoPtr info,
@@ -1372,7 +1318,7 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
     bool virtio_s390_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_S390);
     bool virtio_mmio_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO);
 
-    if (qemuDomainAssignVirtioSerialAddresses(def, obj) < 0)
+    if (virDomainAssignVirtioSerialAddresses(def, obj) < 0)
         return -1;
 
     /* Part of pre-address-assignment-stuff */
@@ -1426,7 +1372,7 @@ qemuDomainReleaseDeviceAddress(virDomainObjPtr vm,
         VIR_WARN("Unable to release PCI address on %s",
                  NULLSTR(devstr));
     if (info->type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_SERIAL &&
-        virDomainVirtioSerialAddrRelease(priv->vioserialaddrs, info) < 0)
+        virDomainVirtioSerialAddrRelease(vm->vioserialaddrs, info) < 0)
         VIR_WARN("Unable to release virtio-serial address on %s",
                  NULLSTR(devstr));
 }

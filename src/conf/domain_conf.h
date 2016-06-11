@@ -756,6 +756,20 @@ struct _virDomainCCWAddressSet {
 typedef struct _virDomainCCWAddressSet virDomainCCWAddressSet;
 typedef virDomainCCWAddressSet *virDomainCCWAddressSetPtr;
 
+struct _virDomainVirtioSerialController {
+    unsigned int idx;
+    virBitmapPtr ports;
+};
+
+typedef struct _virDomainVirtioSerialController virDomainVirtioSerialController;
+typedef virDomainVirtioSerialController *virDomainVirtioSerialControllerPtr;
+
+struct _virDomainVirtioSerialAddrSet {
+    virDomainVirtioSerialControllerPtr *controllers;
+    size_t ncontrollers;
+};
+typedef struct _virDomainVirtioSerialAddrSet virDomainVirtioSerialAddrSet;
+typedef virDomainVirtioSerialAddrSet *virDomainVirtioSerialAddrSetPtr;
 
 /* Types of disk backends */
 typedef enum {
@@ -2328,6 +2342,7 @@ struct _virDomainObj {
     void (*privateDataFreeFunc)(void *);
 
     virDomainCCWAddressSetPtr ccwaddrs;
+    virDomainVirtioSerialAddrSetPtr vioserialaddrs;
 
     int taint;
 
@@ -2529,6 +2544,8 @@ void virDomainDefClearCCWAddresses(virDomainDefPtr def);
 void virDomainDefClearDeviceAliases(virDomainDefPtr def);
 void virDomainTPMDefFree(virDomainTPMDefPtr def);
 void virDomainCCWAddressSetFree(virDomainCCWAddressSetPtr addrs);
+void virDomainVirtioSerialAddrSetFree(virDomainVirtioSerialAddrSetPtr addrs);
+void virDomainVirtioSerialControllerFree(virDomainVirtioSerialControllerPtr cont);
 
 typedef int (*virDomainDeviceInfoCallback)(virDomainDefPtr def,
                                            virDomainDeviceDefPtr dev,

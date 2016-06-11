@@ -178,29 +178,12 @@ int virDomainCCWAddressReleaseAddr(virDomainCCWAddressSetPtr addrs,
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
 virDomainCCWAddressSetPtr virDomainCCWAddressSetCreate(void);
 
-struct _virDomainVirtioSerialController {
-    unsigned int idx;
-    virBitmapPtr ports;
-};
-
-typedef struct _virDomainVirtioSerialController virDomainVirtioSerialController;
-typedef virDomainVirtioSerialController *virDomainVirtioSerialControllerPtr;
-
-struct _virDomainVirtioSerialAddrSet {
-    virDomainVirtioSerialControllerPtr *controllers;
-    size_t ncontrollers;
-};
-typedef struct _virDomainVirtioSerialAddrSet virDomainVirtioSerialAddrSet;
-typedef virDomainVirtioSerialAddrSet *virDomainVirtioSerialAddrSetPtr;
-
 virDomainVirtioSerialAddrSetPtr
 virDomainVirtioSerialAddrSetCreate(void);
 int
 virDomainVirtioSerialAddrSetAddControllers(virDomainVirtioSerialAddrSetPtr addrs,
                                            virDomainDefPtr def)
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
-void
-virDomainVirtioSerialAddrSetFree(virDomainVirtioSerialAddrSetPtr addrs);
 bool
 virDomainVirtioSerialAddrIsComplete(virDomainDeviceInfoPtr info);
 int
@@ -258,5 +241,8 @@ void
 virDomainAssignARMVirtioMMIOAddresses(virDomainDefPtr def,
                                        bool virtio_mmio_capability);
 
+int
+virDomainAssignVirtioSerialAddresses(virDomainDefPtr def,
+                                      virDomainObjPtr obj);
 
 #endif /* __DOMAIN_ADDR_H__ */

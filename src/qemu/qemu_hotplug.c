@@ -1457,12 +1457,13 @@ qemuDomainChrRemove(virDomainDefPtr vmdef,
 }
 
 static int
-qemuDomainAttachChrDeviceAssignAddr(qemuDomainObjPrivatePtr priv,
+qemuDomainAttachChrDeviceAssignAddr(virDomainObjPtr vm,
+                                    qemuDomainObjPrivatePtr priv,
                                     virDomainChrDefPtr chr)
 {
     if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_CONSOLE &&
         chr->targetType == VIR_DOMAIN_CHR_CONSOLE_TARGET_TYPE_VIRTIO) {
-        if (virDomainVirtioSerialAddrAutoAssign(NULL, priv->vioserialaddrs,
+        if (virDomainVirtioSerialAddrAutoAssign(NULL, vm->vioserialaddrs,
                                                 &chr->info, true) < 0)
             return -1;
         return 1;
@@ -1475,7 +1476,7 @@ qemuDomainAttachChrDeviceAssignAddr(qemuDomainObjPrivatePtr priv,
 
     } else if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_CHANNEL &&
                chr->targetType == VIR_DOMAIN_CHR_CHANNEL_TARGET_TYPE_VIRTIO) {
-        if (virDomainVirtioSerialAddrAutoAssign(NULL, priv->vioserialaddrs,
+        if (virDomainVirtioSerialAddrAutoAssign(NULL, vm->vioserialaddrs,
                                                 &chr->info, false) < 0)
             return -1;
         return 1;
@@ -1509,7 +1510,7 @@ int qemuDomainAttachChrDevice(virQEMUDriverPtr driver,
     if (qemuAssignDeviceChrAlias(vmdef, chr, -1) < 0)
         goto cleanup;
 
-    if ((rc = qemuDomainAttachChrDeviceAssignAddr(priv, chr)) < 0)
+    if ((rc = qemuDomainAttachChrDeviceAssignAddr(vm, priv, chr)) < 0)
         goto cleanup;
     if (rc == 1)
         need_release = true;

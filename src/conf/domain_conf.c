@@ -2241,6 +2241,25 @@ void virDomainCCWAddressSetFree(virDomainCCWAddressSetPtr addrs)
     VIR_FREE(addrs);
 }
 
+void virDomainVirtioSerialControllerFree(virDomainVirtioSerialControllerPtr cont)
+{
+    if (cont) {
+        virBitmapFree(cont->ports);
+        VIR_FREE(cont);
+    }
+}
+
+void virDomainVirtioSerialAddrSetFree(virDomainVirtioSerialAddrSetPtr addrs)
+{
+    size_t i;
+    if (addrs) {
+        for (i = 0; i < addrs->ncontrollers; i++)
+            virDomainVirtioSerialControllerFree(addrs->controllers[i]);
+        VIR_FREE(addrs->controllers);
+        VIR_FREE(addrs);
+    }
+}
+
 void virDomainHostdevDefFree(virDomainHostdevDefPtr def)
 {
     if (!def)
@@ -2699,6 +2718,7 @@ static void virDomainObjDispose(void *obj)
     virDomainDefFree(dom->def);
     virDomainDefFree(dom->newDef);
     virDomainCCWAddressSetFree(dom->ccwaddrs);
+    virDomainVirtioSerialAddrSetFree(dom->vioserialaddrs);
 
     if (dom->privateDataFreeFunc)
         (dom->privateDataFreeFunc)(dom->privateData);

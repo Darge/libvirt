@@ -852,15 +852,6 @@ virDomainVirtioSerialAddrSetCreate(void)
     return ret;
 }
 
-static void
-virDomainVirtioSerialControllerFree(virDomainVirtioSerialControllerPtr cont)
-{
-    if (cont) {
-        virBitmapFree(cont->ports);
-        VIR_FREE(cont);
-    }
-}
-
 static ssize_t
 virDomainVirtioSerialAddrPlaceController(virDomainVirtioSerialAddrSetPtr addrs,
                                          virDomainVirtioSerialControllerPtr cont)
@@ -956,19 +947,6 @@ virDomainVirtioSerialAddrSetAddControllers(virDomainVirtioSerialAddrSetPtr addrs
     }
 
     return 0;
-}
-
-
-void
-virDomainVirtioSerialAddrSetFree(virDomainVirtioSerialAddrSetPtr addrs)
-{
-    size_t i;
-    if (addrs) {
-        for (i = 0; i < addrs->ncontrollers; i++)
-            virDomainVirtioSerialControllerFree(addrs->controllers[i]);
-        VIR_FREE(addrs->controllers);
-        VIR_FREE(addrs);
-    }
 }
 
 static int
@@ -1514,3 +1492,56 @@ virDomainAssignARMVirtioMMIOAddresses(virDomainDefPtr def,
             def, VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_MMIO);
     }
 }
+
+
+int
+virDomainAssignVirtioSerialAddresses(virDomainDefPtr def,
+                                      virDomainObjPtr obj)
+{
+    int ret = -1;
+    size_t i;
+    virDomainVirtioSerialAddrSetPtr addrs = NULL;
+
+    if (!(addrs = virDomainVirtioSerialAddrSetCreate()))
+        goto cleanup;
+
+    if (virDomainVirtioSerialAddrSetAddControllers(addrs, def) < 0)
+        goto cleanup;
+
+    if (virDomainDeviceInfoIterate(def, virDomainVirtioSerialAddrReserve,
+                                   addrs) < 0)
+        goto cleanup;
+
+    VIR_DEBUG("Finished reserving existing ports");
+
+    for (i = 0; i < def->nconsoles; i++) {
+        virDomainChrDefPtr chr = def->consoles[i];
+        if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_CONSOLE &&
+            chr->targetType == VIR_DOMAIN_CHR_CONSOLE_TARGET_TYPE_VIRTIO &&
+            !virDomainVirtioSerialAddrIsComplete(&chr->info) &&
+            virDomainVirtioSerialAddrAutoAssign(def, addrs, &chr->info, true) < 0)
+            goto cleanup;
+    }
+
+    for (i = 0; i < def->nchannels; i++) {
+        virDomainChrDefPtr chr = def->channels[i];
+        if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_CHANNEL &&
+            chr->targetType == VIR_DOMAIN_CHR_CHANNEL_TARGET_TYPE_VIRTIO &&
+            !virDomainVirtioSerialAddrIsComplete(&chr->info) &&
+            virDomainVirtioSerialAddrAutoAssign(def, addrs, &chr->info, false) < 0)
+            goto cleanup;
+    }
+
+    if (obj) {
+        /* if this is the live domain object, we persist the addresses */
+        virDomainVirtioSerialAddrSetFree(obj->vioserialaddrs);
+        obj->vioserialaddrs = addrs;
+        addrs = NULL;
+    }
+    ret = 0;
+
+ cleanup:
+    virDomainVirtioSerialAddrSetFree(addrs);
+    return ret;
+}
+
