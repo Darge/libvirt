@@ -44,6 +44,7 @@
 #include "qemu_domain.h"
 #define __QEMU_CAPSRIV_H_ALLOW__
 #include "qemu_capspriv.h"
+#include "domain_addr.h"
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -2174,7 +2175,7 @@ bool virQEMUCapsHasPCIMultiBus(virQEMUCapsPtr qemuCaps,
         /* If 'virt' supports PCI, it supports multibus.
          * No extra conditions here for simplicity.
          */
-        if (qemuDomainMachineIsVirt(def))
+        if (virDomainMachineIsVirt(def))
             return true;
     }
 

@@ -166,7 +166,7 @@ qemuDomainAssignARMVirtioMMIOAddresses(virDomainDefPtr def,
         return;
 
     if (!(STRPREFIX(def->os.machine, "vexpress-") ||
-          qemuDomainMachineIsVirt(def)))
+          virDomainMachineIsVirt(def)))
         return;
 
     if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO)) {
@@ -1089,7 +1089,7 @@ qemuDomainSupportsPCI(virDomainDefPtr def,
     if (STREQ(def->os.machine, "versatilepb"))
         return true;
 
-    if (qemuDomainMachineIsVirt(def) &&
+    if (virDomainMachineIsVirt(def) &&
         virQEMUCapsGet(qemuCaps, QEMU_CAPS_OBJECT_GPEX))
         return true;
 

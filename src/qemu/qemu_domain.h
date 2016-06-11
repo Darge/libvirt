@@ -613,7 +613,6 @@ virDomainChrDefPtr qemuFindAgentConfig(virDomainDefPtr def);
 bool qemuDomainMachineIsQ35(const virDomainDef *def);
 bool qemuDomainMachineIsI440FX(const virDomainDef *def);
 bool qemuDomainMachineNeedsFDC(const virDomainDef *def);
-bool qemuDomainMachineIsVirt(const virDomainDef *def);
 bool qemuDomainMachineHasBuiltinIDE(const virDomainDef *def);
 
 int qemuDomainUpdateCurrentMemorySize(virQEMUDriverPtr driver,

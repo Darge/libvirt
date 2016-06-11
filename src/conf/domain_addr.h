@@ -251,5 +251,8 @@ virDomainAssignS390Addresses(virDomainDefPtr def,
 bool
 virDomainMachineIsS390CCW(const virDomainDef *def);
 
+bool
+virDomainMachineIsVirt(const virDomainDef *def);
+
 
 #endif /* __DOMAIN_ADDR_H__ */

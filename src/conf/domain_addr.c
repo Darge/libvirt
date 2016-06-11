@@ -1485,3 +1485,11 @@ virDomainMachineIsS390CCW(const virDomainDef *def)
 {
     return STRPREFIX(def->os.machine, "s390-ccw");
 }
+
+bool
+virDomainMachineIsVirt(const virDomainDef *def)
+{
+    return STREQ(def->os.machine, "virt") ||
+           STRPREFIX(def->os.machine, "virt-");
+}
+

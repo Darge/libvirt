@@ -1859,7 +1859,7 @@ qemuDomainDefAddDefaultDevices(virDomainDefPtr def,
     case VIR_ARCH_AARCH64:
         addDefaultUSB = false;
         addDefaultMemballoon = false;
-        if (qemuDomainMachineIsVirt(def))
+        if (virDomainMachineIsVirt(def))
             addPCIeRoot = virQEMUCapsGet(qemuCaps, QEMU_CAPS_OBJECT_GPEX);
         break;
 
@@ -2030,7 +2030,7 @@ qemuDomainDefEnableDefaultFeatures(virDomainDefPtr def,
      * GIC version ourselves */
     if (def->features[VIR_DOMAIN_FEATURE_GIC] == VIR_TRISTATE_SWITCH_ABSENT &&
         (def->os.arch == VIR_ARCH_ARMV7L || def->os.arch == VIR_ARCH_AARCH64) &&
-        qemuDomainMachineIsVirt(def)) {
+        virDomainMachineIsVirt(def)) {
 
         VIR_DEBUG("Looking for usable GIC version in domain capabilities");
         for (version = VIR_GIC_VERSION_LAST - 1;
@@ -2205,7 +2205,7 @@ qemuDomainDefaultNetModel(const virDomainDef *def,
         if (STREQ(def->os.machine, "versatilepb"))
             return "smc91c111";
 
-        if (qemuDomainMachineIsVirt(def))
+        if (virDomainMachineIsVirt(def))
             return "virtio";
 
         /* Incomplete. vexpress (and a few others) use this, but not all
@@ -4892,14 +4892,6 @@ qemuDomainMachineNeedsFDC(const virDomainDef *def)
         return true;
     }
     return false;
-}
-
-
-bool
-qemuDomainMachineIsVirt(const virDomainDef *def)
-{
-    return STREQ(def->os.machine, "virt") ||
-           STRPREFIX(def->os.machine, "virt-");
 }
 
 
