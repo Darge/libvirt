@@ -1236,6 +1236,8 @@ virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
       I moved.
     - Use virDomainCCWAddressSetFree(priv->ccwaddrs); somewhere.
       Make sure it's used in every place where previously the private data was cleared.
+    - I am skeptical about vm->def->vioserialaddrs, because how do we know that we
+      really want to refer to def and not the new def?
 */
 
 static int
@@ -1446,8 +1448,8 @@ virDomainAssignS390Addresses(virDomainDefPtr def,
     if (obj) {
         if (addrs) {
             /* if this is the live domain object, we persist the CCW addresses*/
-            virDomainCCWAddressSetFree(obj->ccwaddrs);
-            obj->ccwaddrs = addrs;
+            virDomainCCWAddressSetFree(def->ccwaddrs);
+            def->ccwaddrs = addrs;
             addrs = NULL;
         }
     }
@@ -1534,8 +1536,8 @@ virDomainAssignVirtioSerialAddresses(virDomainDefPtr def,
 
     if (obj) {
         /* if this is the live domain object, we persist the addresses */
-        virDomainVirtioSerialAddrSetFree(obj->vioserialaddrs);
-        obj->vioserialaddrs = addrs;
+        virDomainVirtioSerialAddrSetFree(def->vioserialaddrs);
+        def->vioserialaddrs = addrs;
         addrs = NULL;
     }
     ret = 0;

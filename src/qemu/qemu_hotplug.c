@@ -327,7 +327,7 @@ qemuDomainAttachVirtioDiskDevice(virConnectPtr conn,
         goto cleanup;
 
     if (disk->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW) {
-        if (virDomainCCWAddressAssign(&disk->info, vm->ccwaddrs,
+        if (virDomainCCWAddressAssign(&disk->info, vm->def->ccwaddrs,
                                       !disk->info.addr.ccw.assigned) < 0)
             goto error;
     } else if (!disk->info.type ||
@@ -457,7 +457,7 @@ int qemuDomainAttachControllerDevice(virQEMUDriverPtr driver,
         if (virDomainPCIAddressEnsureAddr(priv->pciaddrs, &controller->info) < 0)
             goto cleanup;
     } else if (controller->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW) {
-        if (virDomainCCWAddressAssign(&controller->info, vm->ccwaddrs,
+        if (virDomainCCWAddressAssign(&controller->info, vm->def->ccwaddrs,
                                       !controller->info.addr.ccw.assigned) < 0)
             goto cleanup;
     }
@@ -944,7 +944,7 @@ qemuDomainAttachNetDevice(virQEMUDriverPtr driver,
     if (virDomainMachineIsS390CCW(vm->def) &&
         virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW)) {
         net->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW;
-        if (virDomainCCWAddressAssign(&net->info, vm->ccwaddrs,
+        if (virDomainCCWAddressAssign(&net->info, vm->def->ccwaddrs,
                                       !net->info.addr.ccw.assigned) < 0)
             goto cleanup;
     } else if (virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_S390)) {
@@ -1463,7 +1463,7 @@ qemuDomainAttachChrDeviceAssignAddr(virDomainObjPtr vm,
 {
     if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_CONSOLE &&
         chr->targetType == VIR_DOMAIN_CHR_CONSOLE_TARGET_TYPE_VIRTIO) {
-        if (virDomainVirtioSerialAddrAutoAssign(NULL, vm->vioserialaddrs,
+        if (virDomainVirtioSerialAddrAutoAssign(NULL, vm->def->vioserialaddrs,
                                                 &chr->info, true) < 0)
             return -1;
         return 1;
@@ -1476,7 +1476,7 @@ qemuDomainAttachChrDeviceAssignAddr(virDomainObjPtr vm,
 
     } else if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_CHANNEL &&
                chr->targetType == VIR_DOMAIN_CHR_CHANNEL_TARGET_TYPE_VIRTIO) {
-        if (virDomainVirtioSerialAddrAutoAssign(NULL, vm->vioserialaddrs,
+        if (virDomainVirtioSerialAddrAutoAssign(NULL, vm->def->vioserialaddrs,
                                                 &chr->info, false) < 0)
             return -1;
         return 1;
@@ -1592,7 +1592,7 @@ qemuDomainAttachRNGDevice(virQEMUDriverPtr driver,
         if (virDomainPCIAddressEnsureAddr(priv->pciaddrs, &rng->info) < 0)
             return -1;
     } else if (rng->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW) {
-        if (virDomainCCWAddressAssign(&rng->info, vm->ccwaddrs,
+        if (virDomainCCWAddressAssign(&rng->info, vm->def->ccwaddrs,
                                       !rng->info.addr.ccw.assigned) < 0)
             return -1;
     }

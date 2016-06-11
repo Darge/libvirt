@@ -2183,6 +2183,9 @@ struct _virDomainDef {
     virGICVersion gic_version;
     char *hyperv_vendor_id;
 
+    virDomainCCWAddressSetPtr ccwaddrs;
+    virDomainVirtioSerialAddrSetPtr vioserialaddrs;
+
     /* These options are of type virTristateSwitch: ON = keep, OFF = drop */
     int caps_features[VIR_DOMAIN_CAPS_FEATURE_LAST];
 
@@ -2340,9 +2343,6 @@ struct _virDomainObj {
 
     void *privateData;
     void (*privateDataFreeFunc)(void *);
-
-    virDomainCCWAddressSetPtr ccwaddrs;
-    virDomainVirtioSerialAddrSetPtr vioserialaddrs;
 
     int taint;
 

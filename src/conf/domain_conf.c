@@ -2549,6 +2549,9 @@ void virDomainDefFree(virDomainDefPtr def)
         virDomainVcpuInfoClear(&def->vcpus[i]);
     VIR_FREE(def->vcpus);
 
+    virDomainCCWAddressSetFree(def->ccwaddrs);
+    virDomainVirtioSerialAddrSetFree(def->vioserialaddrs);
+
     /* hostdevs must be freed before nets (or any future "intelligent
      * hostdevs") because the pointer to the hostdev is really
      * pointing into the middle of the higher level device's object,
@@ -2717,8 +2720,6 @@ static void virDomainObjDispose(void *obj)
     virCondDestroy(&dom->cond);
     virDomainDefFree(dom->def);
     virDomainDefFree(dom->newDef);
-    virDomainCCWAddressSetFree(dom->ccwaddrs);
-    virDomainVirtioSerialAddrSetFree(dom->vioserialaddrs);
 
     if (dom->privateDataFreeFunc)
         (dom->privateDataFreeFunc)(dom->privateData);

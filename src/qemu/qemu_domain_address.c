@@ -1363,7 +1363,7 @@ qemuDomainReleaseDeviceAddress(virDomainObjPtr vm,
     if (info->type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW &&
         virDomainMachineIsS390CCW(vm->def) &&
         virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW) &&
-        virDomainCCWAddressReleaseAddr(vm->ccwaddrs, info) < 0)
+        virDomainCCWAddressReleaseAddr(vm->def->ccwaddrs, info) < 0)
         VIR_WARN("Unable to release CCW address on %s",
                  NULLSTR(devstr));
     else if (virDeviceInfoPCIAddressPresent(info) &&
@@ -1372,7 +1372,7 @@ qemuDomainReleaseDeviceAddress(virDomainObjPtr vm,
         VIR_WARN("Unable to release PCI address on %s",
                  NULLSTR(devstr));
     if (info->type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_SERIAL &&
-        virDomainVirtioSerialAddrRelease(vm->vioserialaddrs, info) < 0)
+        virDomainVirtioSerialAddrRelease(vm->def->vioserialaddrs, info) < 0)
         VIR_WARN("Unable to release virtio-serial address on %s",
                  NULLSTR(devstr));
 }
