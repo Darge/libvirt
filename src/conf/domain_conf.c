@@ -2260,6 +2260,15 @@ void virDomainVirtioSerialAddrSetFree(virDomainVirtioSerialAddrSetPtr addrs)
     }
 }
 
+void virDomainPCIAddressSetFree(virDomainPCIAddressSetPtr addrs)
+{
+    if (!addrs)
+        return;
+
+    VIR_FREE(addrs->buses);
+    VIR_FREE(addrs);
+}
+
 void virDomainHostdevDefFree(virDomainHostdevDefPtr def)
 {
     if (!def)
@@ -2551,6 +2560,7 @@ void virDomainDefFree(virDomainDefPtr def)
 
     virDomainCCWAddressSetFree(def->ccwaddrs);
     virDomainVirtioSerialAddrSetFree(def->vioserialaddrs);
+    virDomainPCIAddressSetFree(def->pciaddrs);
 
     /* hostdevs must be freed before nets (or any future "intelligent
      * hostdevs") because the pointer to the hostdev is really

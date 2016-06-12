@@ -2550,6 +2550,7 @@ void virDomainTPMDefFree(virDomainTPMDefPtr def);
 void virDomainCCWAddressSetFree(virDomainCCWAddressSetPtr addrs);
 void virDomainVirtioSerialAddrSetFree(virDomainVirtioSerialAddrSetPtr addrs);
 void virDomainVirtioSerialControllerFree(virDomainVirtioSerialControllerPtr cont);
+void virDomainPCIAddressSetFree(virDomainPCIAddressSetPtr addrs);
 
 typedef int (*virDomainDeviceInfoCallback)(virDomainDefPtr def,
                                            virDomainDeviceDefPtr dev,

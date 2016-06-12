@@ -92,8 +92,6 @@ char *virDomainPCIAddressAsString(virPCIDeviceAddressPtr addr)
 
 virDomainPCIAddressSetPtr virDomainPCIAddressSetAlloc(unsigned int nbuses);
 
-void virDomainPCIAddressSetFree(virDomainPCIAddressSetPtr addrs);
-
 bool virDomainPCIAddressFlagsCompatible(virPCIDeviceAddressPtr addr,
                                         const char *addrStr,
                                         virDomainPCIConnectFlags busFlags,
@@ -161,7 +159,6 @@ int virDomainCCWAddressAssign(virDomainDeviceInfoPtr dev,
                               virDomainCCWAddressSetPtr addrs,
                               bool autoassign)
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
-void virDomainCCWAddressSetFree(virDomainCCWAddressSetPtr addrs);
 int virDomainCCWAddressAllocate(virDomainDefPtr def,
                                 virDomainDeviceDefPtr dev,
                                 virDomainDeviceInfoPtr info,

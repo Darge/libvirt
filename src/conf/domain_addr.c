@@ -555,17 +555,6 @@ virDomainPCIAddressSetAlloc(unsigned int nbuses)
 }
 
 
-void
-virDomainPCIAddressSetFree(virDomainPCIAddressSetPtr addrs)
-{
-    if (!addrs)
-        return;
-
-    VIR_FREE(addrs->buses);
-    VIR_FREE(addrs);
-}
-
-
 int
 virDomainPCIAddressGetNextSlot(virDomainPCIAddressSetPtr addrs,
                                virPCIDeviceAddressPtr next_addr,
