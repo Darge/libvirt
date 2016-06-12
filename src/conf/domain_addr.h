@@ -223,4 +223,10 @@ virDomainPCIAddressSetCreate(virDomainDefPtr def,
 bool
 virDomainPCIBusFullyReserved(virDomainPCIAddressBusPtr bus);
 
+void
+virDomainPCIControllerSetDefaultModelName(virDomainControllerDefPtr cont);
+
+int
+virDomainAddressFindNewBusNr(virDomainDefPtr def);
+
 #endif /* __DOMAIN_ADDR_H__ */

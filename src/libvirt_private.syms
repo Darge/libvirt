@@ -87,6 +87,7 @@ virPCIDeviceAddressParseXML;
 
 
 # conf/domain_addr.h
+virDomainAddressFindNewBusNr;
 virDomainAssignARMVirtioMMIOAddresses;
 virDomainAssignS390Addresses;
 virDomainAssignSpaprVIOAddresses;
@@ -119,6 +120,7 @@ virDomainPCIAddressSlotInUse;
 virDomainPCIAddressValidate;
 virDomainPCIBusFullyReserved;
 virDomainPCIControllerModelToConnectType;
+virDomainPCIControllerSetDefaultModelName;
 virDomainPrimeVirtioDeviceAddresses;
 virDomainReleaseDeviceAddress;
 virDomainVirtioSerialAddrAssign;
