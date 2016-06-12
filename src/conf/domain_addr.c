@@ -1245,6 +1245,8 @@ virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
       qemu-only, or it's okay that they are moved to domain_addr.c?
       Is there any better place for them than domain_addr.c? domain_conf?
       These two functions are executed in many places...
+    - change name from deviceVideoUsable to something better
+    - change the names of these booleans to something better, not a_b_capability
 */
 
 static int
@@ -1903,7 +1905,7 @@ virDomainAddressFindNewBusNr(virDomainDefPtr def)
 int
 virDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
                                       virDomainPCIAddressSetPtr addrs,
-                                      bool qemuDeviceVideoUsable)
+                                      bool deviceVideoUsable)
 {
     int ret = -1;
     size_t i;
@@ -1985,7 +1987,7 @@ virDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
                 goto cleanup;
 
             if (virDomainPCIAddressSlotInUse(addrs, &tmp_addr)) {
-                if (qemuDeviceVideoUsable) {
+                if (deviceVideoUsable) {
                     if (virDomainPCIAddressReserveNextSlot(addrs,
                                                            &primaryVideo->info,
                                                            flags) < 0)
@@ -2002,7 +2004,7 @@ virDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
                 primaryVideo->info.addr.pci = tmp_addr;
                 primaryVideo->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI;
             }
-        } else if (!qemuDeviceVideoUsable) {
+        } else if (!deviceVideoUsable) {
             if (primaryVideo->info.addr.pci.domain != 0 ||
                 primaryVideo->info.addr.pci.bus != 0 ||
                 primaryVideo->info.addr.pci.slot != 2 ||
@@ -2014,7 +2016,7 @@ virDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
             /* If TYPE == PCI, then virDomainCollectPCIAddress() function
              * has already reserved the address, so we must skip */
         }
-    } else if (addrs->nbuses && !qemuDeviceVideoUsable) {
+    } else if (addrs->nbuses && !deviceVideoUsable) {
         memset(&tmp_addr, 0, sizeof(tmp_addr));
         tmp_addr.slot = 2;
 
@@ -2036,7 +2038,7 @@ virDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
 int
 virDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
                                     virDomainPCIAddressSetPtr addrs,
-                                    bool qemuDeviceVideoUsable)
+                                    bool deviceVideoUsable)
 {
     int ret = -1;
     size_t i;
@@ -2175,7 +2177,7 @@ virDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
                 goto cleanup;
 
             if (virDomainPCIAddressSlotInUse(addrs, &tmp_addr)) {
-                if (qemuDeviceVideoUsable) {
+                if (deviceVideoUsable) {
                     if (virDomainPCIAddressReserveNextSlot(addrs,
                                                            &primaryVideo->info,
                                                            flags) < 0)
@@ -2192,7 +2194,7 @@ virDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
                 primaryVideo->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI;
                 primaryVideo->info.addr.pci = tmp_addr;
             }
-        } else if (!qemuDeviceVideoUsable) {
+        } else if (!deviceVideoUsable) {
             if (primaryVideo->info.addr.pci.domain != 0 ||
                 primaryVideo->info.addr.pci.bus != 0 ||
                 primaryVideo->info.addr.pci.slot != 1 ||
@@ -2204,7 +2206,7 @@ virDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
             /* If TYPE == PCI, then virDomainCollectPCIAddress() function
              * has already reserved the address, so we must skip */
         }
-    } else if (addrs->nbuses && !qemuDeviceVideoUsable) {
+    } else if (addrs->nbuses && !deviceVideoUsable) {
         memset(&tmp_addr, 0, sizeof(tmp_addr));
         tmp_addr.slot = 1;
 
@@ -2227,15 +2229,15 @@ virDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
 int
 virDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
                                          virDomainPCIAddressSetPtr addrs,
-                                         bool qemuDeviceVideoUsable)
+                                         bool deviceVideoUsable)
 {
     if (virDomainMachineIsI440FX(def) &&
-        virDomainValidateDevicePCISlotsPIIX3(def, addrs, qemuDeviceVideoUsable) < 0) {
+        virDomainValidateDevicePCISlotsPIIX3(def, addrs, deviceVideoUsable) < 0) {
         return -1;
     }
 
     if (virDomainMachineIsQ35(def) &&
-        virDomainValidateDevicePCISlotsQ35(def, addrs, qemuDeviceVideoUsable) < 0) {
+        virDomainValidateDevicePCISlotsQ35(def, addrs, deviceVideoUsable) < 0) {
         return -1;
     }
 

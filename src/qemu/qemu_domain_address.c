@@ -113,7 +113,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
     size_t i;
     int rv;
     bool buses_reserved = true;
-    bool qemuDeviceVideoUsable = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY);
+    bool deviceVideoUsable = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY);
     bool virtio_mmio_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO);
     bool object_gpex_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_OBJECT_GPEX);
 
@@ -137,7 +137,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
             goto cleanup;
 
         if (virDomainValidateDevicePCISlotsChipsets(def, addrs,
-                                                     qemuDeviceVideoUsable) < 0)
+                                                     deviceVideoUsable) < 0)
             goto cleanup;
 
         for (i = 0; i < addrs->nbuses; i++) {
@@ -183,7 +183,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
 
     if (virDomainSupportsPCI(def, object_gpex_capability)) {
         if (virDomainValidateDevicePCISlotsChipsets(def, addrs,
-                                                     qemuDeviceVideoUsable) < 0)
+                                                     deviceVideoUsable) < 0)
             goto cleanup;
 
         if (virDomainAssignDevicePCISlots(def, addrs,
