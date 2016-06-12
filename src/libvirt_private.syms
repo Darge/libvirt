@@ -87,6 +87,8 @@ virPCIDeviceAddressParseXML;
 
 
 # conf/domain_addr.h
+qemuDomainMachineIsQ35;
+qemuDomainMachineIsI440FX;
 virDomainAddressFindNewBusNr;
 virDomainAssignARMVirtioMMIOAddresses;
 virDomainAssignS390Addresses;

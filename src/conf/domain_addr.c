@@ -1241,6 +1241,8 @@ virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
       Find a better way. The current placement of these defines might be wrong.
     - Deal with unused parameters warnings (connected to the "obj" problem)
     - rename virDomainAddressFindNewBusNr to virDomainPCIAddr*?
+    - are functions qemu/vir DomainMachineIsQ35 and qemu/vir qemuDomainMachineIsI440FX
+      qemu-only, or it's okay that they are moved to domain_addr.c?
 */
 
 static int
@@ -2238,4 +2240,22 @@ virDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
     return 0;
 }
 
+
+bool
+qemuDomainMachineIsQ35(const virDomainDef *def)
+{
+    return (STRPREFIX(def->os.machine, "pc-q35") ||
+            STREQ(def->os.machine, "q35"));
+}
+
+
+bool
+qemuDomainMachineIsI440FX(const virDomainDef *def)
+{
+    return (STREQ(def->os.machine, "pc") ||
+            STRPREFIX(def->os.machine, "pc-0.") ||
+            STRPREFIX(def->os.machine, "pc-1.") ||
+            STRPREFIX(def->os.machine, "pc-i440") ||
+            STRPREFIX(def->os.machine, "rhel"));
+}
 
