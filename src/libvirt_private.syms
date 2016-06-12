@@ -112,6 +112,7 @@ virDomainPCIAddressReserveAddr;
 virDomainPCIAddressReserveNextSlot;
 virDomainPCIAddressReserveSlot;
 virDomainPCIAddressSetAlloc;
+virDomainPCIAddressSetCreate;
 virDomainPCIAddressSetFree;
 virDomainPCIAddressSetGrow;
 virDomainPCIAddressSlotInUse;

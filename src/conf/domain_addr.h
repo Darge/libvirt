@@ -215,4 +215,9 @@ virDomainCollectPCIAddress(virDomainDefPtr def ATTRIBUTE_UNUSED,
                             virDomainDeviceInfoPtr info,
                             void *opaque);
 
+virDomainPCIAddressSetPtr
+virDomainPCIAddressSetCreate(virDomainDefPtr def,
+                              unsigned int nbuses,
+                              bool dryRun);
+
 #endif /* __DOMAIN_ADDR_H__ */
