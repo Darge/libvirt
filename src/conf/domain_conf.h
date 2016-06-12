@@ -771,6 +771,43 @@ struct _virDomainVirtioSerialAddrSet {
 typedef struct _virDomainVirtioSerialAddrSet virDomainVirtioSerialAddrSet;
 typedef virDomainVirtioSerialAddrSet *virDomainVirtioSerialAddrSetPtr;
 
+typedef enum {
+   VIR_PCI_CONNECT_HOTPLUGGABLE = 1 << 0, /* is hotplug needed/supported */
+
+   /* kinds of devices as a bitmap so they can be combined (some PCI
+    * controllers permit connecting multiple types of devices)
+    */
+   VIR_PCI_CONNECT_TYPE_PCI_DEVICE = 1 << 1,
+   VIR_PCI_CONNECT_TYPE_PCIE_DEVICE = 1 << 2,
+   VIR_PCI_CONNECT_TYPE_PCIE_ROOT_PORT = 1 << 3,
+   VIR_PCI_CONNECT_TYPE_PCIE_SWITCH_UPSTREAM_PORT = 1 << 4,
+   VIR_PCI_CONNECT_TYPE_PCIE_SWITCH_DOWNSTREAM_PORT = 1 << 5,
+} virDomainPCIConnectFlags;
+
+# define VIR_PCI_ADDRESS_SLOT_LAST 31
+
+typedef struct {
+    virDomainControllerModelPCI model;
+    /* flags and min/max can be computed from model, but
+     * having them ready makes life easier.
+     */
+    virDomainPCIConnectFlags flags;
+    size_t minSlot, maxSlot; /* usually 0,0 or 0,31, or 1,31 */
+    /* Each bit in a slot represents one function on that slot. If the
+     * bit is set, that function is in use by a device.
+     */
+    uint8_t slots[VIR_PCI_ADDRESS_SLOT_LAST + 1];
+} virDomainPCIAddressBus;
+typedef virDomainPCIAddressBus *virDomainPCIAddressBusPtr;
+
+struct _virDomainPCIAddressSet {
+    virDomainPCIAddressBus *buses;
+    size_t nbuses;
+    virPCIDeviceAddress lastaddr;
+    virDomainPCIConnectFlags lastFlags;
+    bool dryRun;          /* on a dry run, new buses are auto-added
+                             and addresses aren't saved in device infos */
+};
 typedef struct _virDomainPCIAddressSet virDomainPCIAddressSet;
 typedef virDomainPCIAddressSet *virDomainPCIAddressSetPtr;
 

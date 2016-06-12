@@ -1227,7 +1227,14 @@ virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
       Make sure it's used in every place where previously the private data was cleared.
     - I am skeptical about vm->def->vioserialaddrs, because how do we know that we
       really want to refer to def and not the new def?
-      The same question applies to vm->def->ccwaddrs.
+      The same question applies to vm->def->ccwaddrs
+    - What in the previous code was (obj && obj->privateData) was changed
+      to nothing in the address handling (it's when the current address sets are assigned)
+      Make sure that it's correct.
+    - Do I really have to move all these declarations of PCI stuff to domain_conf.h
+      just because I want to run a function that clears the pci address set?
+      That seems like too much, but circular dependencies otherwise.
+      Find a better way. The current placement of these defines might be wrong.
 */
 
 static int
