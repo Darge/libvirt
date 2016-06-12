@@ -2260,3 +2260,350 @@ virDomainMachineIsI440FX(const virDomainDef *def)
             STRPREFIX(def->os.machine, "pc-i440") ||
             STRPREFIX(def->os.machine, "rhel"));
 }
+
+
+/*
+ * This assigns static PCI slots to all configured devices.
+ * The ordering here is chosen to match the ordering used
+ * with old QEMU < 0.12, so that if a user updates a QEMU
+ * host from old QEMU to QEMU >= 0.12, their guests should
+ * get PCI addresses in the same order as before.
+ *
+ * NB, if they previously hotplugged devices then all bets
+ * are off. Hotplug for old QEMU was unfixably broken wrt
+ * to stable PCI addressing.
+ *
+ * Order is:
+ *
+ *  - Host bridge (slot 0)
+ *  - PIIX3 ISA bridge, IDE controller, something else unknown, USB controller (slot 1)
+ *  - Video (slot 2)
+ *
+ *  - These integrated devices were already added by
+ *    qemuValidateDevicePCISlotsChipsets invoked right before this function
+ *
+ * Incrementally assign slots from 3 onwards:
+ *
+ *  - Net
+ *  - Sound
+ *  - SCSI controllers
+ *  - VirtIO block
+ *  - VirtIO balloon
+ *  - Host device passthrough
+ *  - Watchdog
+ *  - pci serial devices
+ *
+ * Prior to this function being invoked, virDomainCollectPCIAddress() will have
+ * added all existing PCI addresses from the 'def' to 'addrs'. Thus this
+ * function must only try to reserve addresses if info.type == NONE and
+ * skip over info.type == PCI
+ */
+int
+virDomainAssignDevicePCISlots(virDomainDefPtr def,
+                               virDomainPCIAddressSetPtr addrs,
+                               bool virtio_mmio_capability)
+{
+    size_t i, j;
+    virDomainPCIConnectFlags flags = 0; /* initialize to quiet gcc warning */
+    virPCIDeviceAddress tmp_addr;
+
+    /* PCI controllers */
+    for (i = 0; i < def->ncontrollers; i++) {
+        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_PCI) {
+            virDomainControllerModelPCI model = def->controllers[i]->model;
+
+            if (model == VIR_DOMAIN_CONTROLLER_MODEL_PCI_ROOT ||
+                model == VIR_DOMAIN_CONTROLLER_MODEL_PCIE_ROOT ||
+                !virDeviceInfoPCIAddressWanted(&def->controllers[i]->info))
+                continue;
+
+            /* convert the type of controller into a "CONNECT_TYPE"
+             * flag to use when searching for the proper
+             * controller/bus to connect it to on the upstream side.
+             */
+            flags = virDomainPCIControllerModelToConnectType(model);
+            if (virDomainPCIAddressReserveNextSlot(addrs,
+                                                   &def->controllers[i]->info,
+                                                   flags) < 0)
+                goto error;
+        }
+    }
+
+    /* all other devices that plug into a PCI slot are treated as a
+     * PCI endpoint devices that require a hotplug-capable slot
+     * (except for some special cases which have specific handling
+     * below)
+     */
+    flags = VIR_PCI_CONNECT_HOTPLUGGABLE | VIR_PCI_CONNECT_TYPE_PCI_DEVICE;
+
+    for (i = 0; i < def->nfss; i++) {
+        if (!virDeviceInfoPCIAddressWanted(&def->fss[i]->info))
+            continue;
+
+        /* Only support VirtIO-9p-pci so far. If that changes,
+         * we might need to skip devices here */
+        if (virDomainPCIAddressReserveNextSlot(addrs, &def->fss[i]->info,
+                                               flags) < 0)
+            goto error;
+    }
+
+    /* Network interfaces */
+    for (i = 0; i < def->nnets; i++) {
+        /* type='hostdev' network devices might be USB, and are also
+         * in hostdevs list anyway, so handle them with other hostdevs
+         * instead of here.
+         */
+        if ((def->nets[i]->type == VIR_DOMAIN_NET_TYPE_HOSTDEV) ||
+            !virDeviceInfoPCIAddressWanted(&def->nets[i]->info)) {
+            continue;
+        }
+        if (virDomainPCIAddressReserveNextSlot(addrs, &def->nets[i]->info,
+                                               flags) < 0)
+            goto error;
+    }
+
+    /* Sound cards */
+    for (i = 0; i < def->nsounds; i++) {
+        if (!virDeviceInfoPCIAddressWanted(&def->sounds[i]->info))
+            continue;
+        /* Skip ISA sound card, PCSPK and usb-audio */
+        if (def->sounds[i]->model == VIR_DOMAIN_SOUND_MODEL_SB16 ||
+            def->sounds[i]->model == VIR_DOMAIN_SOUND_MODEL_PCSPK ||
+            def->sounds[i]->model == VIR_DOMAIN_SOUND_MODEL_USB)
+            continue;
+
+        if (virDomainPCIAddressReserveNextSlot(addrs, &def->sounds[i]->info,
+                                               flags) < 0)
+            goto error;
+    }
+
+    /* Device controllers (SCSI, USB, but not IDE, FDC or CCID) */
+    for (i = 0; i < def->ncontrollers; i++) {
+        /* PCI controllers have been dealt with earlier */
+        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_PCI)
+            continue;
+
+        /* USB controller model 'none' doesn't need a PCI address */
+        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_USB &&
+            def->controllers[i]->model == VIR_DOMAIN_CONTROLLER_MODEL_USB_NONE)
+            continue;
+
+        /* FDC lives behind the ISA bridge; CCID is a usb device */
+        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_FDC ||
+            def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_CCID)
+            continue;
+
+        /* First IDE controller lives on the PIIX3 at slot=1, function=1,
+           dealt with earlier on*/
+        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_IDE &&
+            def->controllers[i]->idx == 0)
+            continue;
+
+        if (!virDeviceInfoPCIAddressWanted(&def->controllers[i]->info))
+            continue;
+
+        /* USB2 needs special handling to put all companions in the same slot */
+        if (IS_USB2_CONTROLLER(def->controllers[i])) {
+            virPCIDeviceAddress addr = { 0, 0, 0, 0, false };
+            bool foundAddr = false;
+
+            memset(&tmp_addr, 0, sizeof(tmp_addr));
+            for (j = 0; j < def->ncontrollers; j++) {
+                if (IS_USB2_CONTROLLER(def->controllers[j]) &&
+                    def->controllers[j]->idx == def->controllers[i]->idx &&
+                    virDeviceInfoPCIAddressPresent(&def->controllers[j]->info)) {
+                    addr = def->controllers[j]->info.addr.pci;
+                    foundAddr = true;
+                    break;
+                }
+            }
+
+            switch (def->controllers[i]->model) {
+            case VIR_DOMAIN_CONTROLLER_MODEL_USB_ICH9_EHCI1:
+                addr.function = 7;
+                addr.multi = VIR_TRISTATE_SWITCH_ABSENT;
+                break;
+            case VIR_DOMAIN_CONTROLLER_MODEL_USB_ICH9_UHCI1:
+                addr.function = 0;
+                addr.multi = VIR_TRISTATE_SWITCH_ON;
+                break;
+            case VIR_DOMAIN_CONTROLLER_MODEL_USB_ICH9_UHCI2:
+                addr.function = 1;
+                addr.multi = VIR_TRISTATE_SWITCH_ABSENT;
+                break;
+            case VIR_DOMAIN_CONTROLLER_MODEL_USB_ICH9_UHCI3:
+                addr.function = 2;
+                addr.multi = VIR_TRISTATE_SWITCH_ABSENT;
+                break;
+            }
+
+            if (!foundAddr) {
+                /* This is the first part of the controller, so need
+                 * to find a free slot & then reserve a function */
+                if (virDomainPCIAddressGetNextSlot(addrs, &tmp_addr, flags) < 0)
+                    goto error;
+
+                addr.bus = tmp_addr.bus;
+                addr.slot = tmp_addr.slot;
+
+                addrs->lastaddr = addr;
+                addrs->lastaddr.function = 0;
+                addrs->lastaddr.multi = VIR_TRISTATE_SWITCH_ABSENT;
+            }
+            /* Finally we can reserve the slot+function */
+            if (virDomainPCIAddressReserveAddr(addrs, &addr, flags,
+                                               false, foundAddr) < 0)
+                goto error;
+
+            def->controllers[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI;
+            def->controllers[i]->info.addr.pci = addr;
+        } else {
+            if (virDomainPCIAddressReserveNextSlot(addrs,
+                                                   &def->controllers[i]->info,
+                                                   flags) < 0)
+                goto error;
+        }
+    }
+
+    /* Disks (VirtIO only for now) */
+    for (i = 0; i < def->ndisks; i++) {
+        /* Only VirtIO disks use PCI addrs */
+        if (def->disks[i]->bus != VIR_DOMAIN_DISK_BUS_VIRTIO)
+            continue;
+
+        /* don't touch s390 devices */
+        if (virDeviceInfoPCIAddressPresent(&def->disks[i]->info) ||
+            def->disks[i]->info.type ==
+            VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_S390 ||
+            def->disks[i]->info.type ==
+            VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW)
+            continue;
+
+        /* Also ignore virtio-mmio disks if our machine allows them */
+        if (def->disks[i]->info.type ==
+            VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_MMIO &&
+            virtio_mmio_capability)
+            continue;
+
+        if (!virDeviceInfoPCIAddressWanted(&def->disks[i]->info)) {
+            virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                           _("virtio disk cannot have an address of type '%s'"),
+                           virDomainDeviceAddressTypeToString(def->disks[i]->info.type));
+            goto error;
+        }
+
+        if (virDomainPCIAddressReserveNextSlot(addrs, &def->disks[i]->info,
+                                               flags) < 0)
+            goto error;
+    }
+
+    /* Host PCI devices */
+    for (i = 0; i < def->nhostdevs; i++) {
+        if (!virDeviceInfoPCIAddressWanted(def->hostdevs[i]->info))
+            continue;
+        if (def->hostdevs[i]->mode != VIR_DOMAIN_HOSTDEV_MODE_SUBSYS ||
+            def->hostdevs[i]->source.subsys.type != VIR_DOMAIN_HOSTDEV_SUBSYS_TYPE_PCI)
+            continue;
+
+        if (virDomainPCIAddressReserveNextSlot(addrs,
+                                               def->hostdevs[i]->info,
+                                               flags) < 0)
+            goto error;
+    }
+
+    /* VirtIO balloon */
+    if (def->memballoon &&
+        def->memballoon->model == VIR_DOMAIN_MEMBALLOON_MODEL_VIRTIO &&
+        virDeviceInfoPCIAddressWanted(&def->memballoon->info)) {
+        if (virDomainPCIAddressReserveNextSlot(addrs,
+                                               &def->memballoon->info,
+                                               flags) < 0)
+            goto error;
+    }
+
+    /* VirtIO RNG */
+    for (i = 0; i < def->nrngs; i++) {
+        if (def->rngs[i]->model != VIR_DOMAIN_RNG_MODEL_VIRTIO ||
+            !virDeviceInfoPCIAddressWanted(&def->rngs[i]->info))
+            continue;
+
+        if (virDomainPCIAddressReserveNextSlot(addrs,
+                                               &def->rngs[i]->info, flags) < 0)
+            goto error;
+    }
+
+    /* A watchdog - check if it is a PCI device */
+    if (def->watchdog &&
+        def->watchdog->model == VIR_DOMAIN_WATCHDOG_MODEL_I6300ESB &&
+        virDeviceInfoPCIAddressWanted(&def->watchdog->info)) {
+        if (virDomainPCIAddressReserveNextSlot(addrs, &def->watchdog->info,
+                                               flags) < 0)
+            goto error;
+    }
+
+    /* Assign a PCI slot to the primary video card if there is not an
+     * assigned address. */
+    if (def->nvideos > 0 &&
+        virDeviceInfoPCIAddressWanted(&def->videos[0]->info)) {
+        if (virDomainPCIAddressReserveNextSlot(addrs, &def->videos[0]->info,
+                                               flags) < 0)
+            goto error;
+    }
+
+    /* Further non-primary video cards which have to be qxl type */
+    for (i = 1; i < def->nvideos; i++) {
+        if (def->videos[i]->type != VIR_DOMAIN_VIDEO_TYPE_QXL) {
+            virReportError(VIR_ERR_CONFIG_UNSUPPORTED, "%s",
+                           _("non-primary video device must be type of 'qxl'"));
+            goto error;
+        }
+        if (!virDeviceInfoPCIAddressWanted(&def->videos[i]->info))
+            continue;
+        if (virDomainPCIAddressReserveNextSlot(addrs, &def->videos[i]->info,
+                                               flags) < 0)
+            goto error;
+    }
+
+    /* Shared Memory */
+    for (i = 0; i < def->nshmems; i++) {
+        if (!virDeviceInfoPCIAddressWanted(&def->shmems[i]->info))
+            continue;
+
+        if (virDomainPCIAddressReserveNextSlot(addrs,
+                                               &def->shmems[i]->info, flags) < 0)
+            goto error;
+    }
+    for (i = 0; i < def->ninputs; i++) {
+        if (def->inputs[i]->bus != VIR_DOMAIN_INPUT_BUS_VIRTIO ||
+            !virDeviceInfoPCIAddressWanted(&def->inputs[i]->info))
+            continue;
+
+        if (virDomainPCIAddressReserveNextSlot(addrs,
+                                               &def->inputs[i]->info, flags) < 0)
+            goto error;
+    }
+    for (i = 0; i < def->nparallels; i++) {
+        /* Nada - none are PCI based (yet) */
+    }
+    for (i = 0; i < def->nserials; i++) {
+        virDomainChrDefPtr chr = def->serials[i];
+
+        if (chr->targetType != VIR_DOMAIN_CHR_SERIAL_TARGET_TYPE_PCI ||
+            !virDeviceInfoPCIAddressWanted(&chr->info))
+            continue;
+
+        if (virDomainPCIAddressReserveNextSlot(addrs, &chr->info, flags) < 0)
+            goto error;
+    }
+    for (i = 0; i < def->nchannels; i++) {
+        /* Nada - none are PCI based (yet) */
+    }
+    for (i = 0; i < def->nhubs; i++) {
+        /* Nada - none are PCI based (yet) */
+    }
+
+    return 0;
+
+ error:
+    return -1;
+}

@@ -195,6 +195,12 @@ virDomainMachineIsS390CCW(const virDomainDef *def);
 bool
 virDomainMachineIsVirt(const virDomainDef *def);
 
+bool
+virDomainMachineIsQ35(const virDomainDef *def);
+
+bool
+virDomainMachineIsI440FX(const virDomainDef *def);
+
 void
 virDomainAssignARMVirtioMMIOAddresses(virDomainDefPtr def,
                                        bool virtio_mmio_capability);
@@ -244,10 +250,9 @@ virDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
                                          virDomainPCIAddressSetPtr addrs,
                                          bool qemuDeviceVideoUsable);
 
-bool
-virDomainMachineIsQ35(const virDomainDef *def);
-
-bool
-virDomainMachineIsI440FX(const virDomainDef *def);
+int
+virDomainAssignDevicePCISlots(virDomainDefPtr def,
+                               virDomainPCIAddressSetPtr addrs,
+                               bool virtio_mmio_capability);
 
 #endif /* __DOMAIN_ADDR_H__ */
