@@ -139,8 +139,8 @@ qemuDomainSetSCSIControllerModel(const virDomainDef *def,
  */
 static int
 qemuDomainAssignDevicePCISlots(virDomainDefPtr def,
-                               virQEMUCapsPtr qemuCaps,
-                               virDomainPCIAddressSetPtr addrs)
+                               virDomainPCIAddressSetPtr addrs,
+                               bool virtio_mmio_capability)
 {
     size_t i, j;
     virDomainPCIConnectFlags flags = 0; /* initialize to quiet gcc warning */
@@ -321,7 +321,7 @@ qemuDomainAssignDevicePCISlots(virDomainDefPtr def,
         /* Also ignore virtio-mmio disks if our machine allows them */
         if (def->disks[i]->info.type ==
             VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_MMIO &&
-            virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO))
+            virtio_mmio_capability)
             continue;
 
         if (!virDeviceInfoPCIAddressWanted(&def->disks[i]->info)) {
@@ -479,6 +479,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
     int rv;
     bool buses_reserved = true;
     bool qemuDeviceVideoUsable = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY);
+    bool virtio_mmio_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO);
 
     virDomainPCIConnectFlags flags = VIR_PCI_CONNECT_TYPE_PCI_DEVICE;
 
@@ -515,7 +516,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
             virDomainPCIAddressReserveNextSlot(addrs, &info, flags) < 0)
             goto cleanup;
 
-        if (qemuDomainAssignDevicePCISlots(def, qemuCaps, addrs) < 0)
+        if (qemuDomainAssignDevicePCISlots(def, addrs, virtio_mmio_capability) < 0)
             goto cleanup;
 
         for (i = 1; i < addrs->nbuses; i++) {
@@ -549,7 +550,8 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
                                                      qemuDeviceVideoUsable) < 0)
             goto cleanup;
 
-        if (qemuDomainAssignDevicePCISlots(def, qemuCaps, addrs) < 0)
+        if (qemuDomainAssignDevicePCISlots(def, addrs,
+                                           virtio_mmio_capability) < 0)
             goto cleanup;
 
         for (i = 0; i < def->ncontrollers; i++) {
