@@ -332,7 +332,7 @@ qemuDomainAttachVirtioDiskDevice(virConnectPtr conn,
             goto error;
     } else if (!disk->info.type ||
                 disk->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI) {
-        if (virDomainPCIAddressEnsureAddr(priv->pciaddrs, &disk->info) < 0)
+        if (virDomainPCIAddressEnsureAddr(vm->def->pciaddrs, &disk->info) < 0)
             goto error;
     }
     releaseaddr = true;
@@ -454,7 +454,7 @@ int qemuDomainAttachControllerDevice(virQEMUDriverPtr driver,
 
     if (controller->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE ||
         controller->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI) {
-        if (virDomainPCIAddressEnsureAddr(priv->pciaddrs, &controller->info) < 0)
+        if (virDomainPCIAddressEnsureAddr(vm->def->pciaddrs, &controller->info) < 0)
             goto cleanup;
     } else if (controller->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW) {
         if (virDomainCCWAddressAssign(&controller->info, vm->def->ccwaddrs,
@@ -951,7 +951,7 @@ qemuDomainAttachNetDevice(virQEMUDriverPtr driver,
         virReportError(VIR_ERR_CONFIG_UNSUPPORTED, "%s",
                        _("virtio-s390 net device cannot be hotplugged."));
         goto cleanup;
-    } else if (virDomainPCIAddressEnsureAddr(priv->pciaddrs, &net->info) < 0) {
+    } else if (virDomainPCIAddressEnsureAddr(vm->def->pciaddrs, &net->info) < 0) {
         goto cleanup;
     }
 
@@ -1230,7 +1230,7 @@ qemuDomainAttachHostPCIDevice(virQEMUDriverPtr driver,
 
     if (qemuAssignDeviceHostdevAlias(vm->def, &hostdev->info->alias, -1) < 0)
         goto error;
-    if (virDomainPCIAddressEnsureAddr(priv->pciaddrs, hostdev->info) < 0)
+    if (virDomainPCIAddressEnsureAddr(vm->def->pciaddrs, hostdev->info) < 0)
         goto error;
     releaseaddr = true;
     if (backend != VIR_DOMAIN_HOSTDEV_PCI_BACKEND_VFIO &&
@@ -1470,7 +1470,7 @@ qemuDomainAttachChrDeviceAssignAddr(virDomainObjPtr vm,
 
     } else if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_SERIAL &&
                chr->targetType == VIR_DOMAIN_CHR_SERIAL_TARGET_TYPE_PCI) {
-        if (virDomainPCIAddressEnsureAddr(priv->pciaddrs, &chr->info) < 0)
+        if (virDomainPCIAddressEnsureAddr(vm->def->pciaddrs, &chr->info) < 0)
             return -1;
         return 1;
 
@@ -1589,7 +1589,7 @@ qemuDomainAttachRNGDevice(virQEMUDriverPtr driver,
 
     if (rng->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE ||
         rng->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI) {
-        if (virDomainPCIAddressEnsureAddr(priv->pciaddrs, &rng->info) < 0)
+        if (virDomainPCIAddressEnsureAddr(vm->def->pciaddrs, &rng->info) < 0)
             return -1;
     } else if (rng->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW) {
         if (virDomainCCWAddressAssign(&rng->info, vm->def->ccwaddrs,

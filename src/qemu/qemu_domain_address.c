@@ -1290,13 +1290,13 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
         }
     }
 
-    if (obj && obj->privateData) {
-        priv = obj->privateData;
+//    if (obj && obj->privateData) {
+//        priv = obj->privateData;
         /* if this is the live domain object, we persist the PCI addresses */
-        virDomainPCIAddressSetFree(priv->pciaddrs);
-        priv->pciaddrs = addrs;
+        virDomainPCIAddressSetFree(def->pciaddrs);
+        def->pciaddrs = addrs;
         addrs = NULL;
-    }
+//    }
 
     ret = 0;
 
@@ -1367,7 +1367,7 @@ qemuDomainReleaseDeviceAddress(virDomainObjPtr vm,
         VIR_WARN("Unable to release CCW address on %s",
                  NULLSTR(devstr));
     else if (virDeviceInfoPCIAddressPresent(info) &&
-             virDomainPCIAddressReleaseSlot(priv->pciaddrs,
+             virDomainPCIAddressReleaseSlot(vm->def->pciaddrs,
                                             &info->addr.pci) < 0)
         VIR_WARN("Unable to release PCI address on %s",
                  NULLSTR(devstr));
