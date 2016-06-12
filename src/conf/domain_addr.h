@@ -220,4 +220,7 @@ virDomainPCIAddressSetCreate(virDomainDefPtr def,
                               unsigned int nbuses,
                               bool dryRun);
 
+bool
+virDomainPCIBusFullyReserved(virDomainPCIAddressBusPtr bus);
+
 #endif /* __DOMAIN_ADDR_H__ */

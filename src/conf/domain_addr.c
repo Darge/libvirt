@@ -1239,6 +1239,7 @@ virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
       just because I want to run a function that clears the pci address set?
       That seems like too much, but circular dependencies otherwise.
       Find a better way. The current placement of these defines might be wrong.
+    - Deal with unused parameters warnings (connected to the "obj" problem)
 */
 
 static int
@@ -1773,3 +1774,15 @@ virDomainPCIAddressSetCreate(virDomainDefPtr def,
     return NULL;
 }
 
+
+bool
+virDomainPCIBusFullyReserved(virDomainPCIAddressBusPtr bus)
+{
+    size_t i;
+
+    for (i = bus->minSlot; i <= bus->maxSlot; i++)
+        if (!bus->slots[i])
+            return false;
+
+    return true;
+}

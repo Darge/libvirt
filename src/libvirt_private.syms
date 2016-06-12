@@ -117,6 +117,7 @@ virDomainPCIAddressSetFree;
 virDomainPCIAddressSetGrow;
 virDomainPCIAddressSlotInUse;
 virDomainPCIAddressValidate;
+virDomainPCIBusFullyReserved;
 virDomainPCIControllerModelToConnectType;
 virDomainPrimeVirtioDeviceAddresses;
 virDomainReleaseDeviceAddress;

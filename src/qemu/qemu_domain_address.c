@@ -446,19 +446,6 @@ qemuDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
 }
 
 
-static bool
-qemuDomainPCIBusFullyReserved(virDomainPCIAddressBusPtr bus)
-{
-    size_t i;
-
-    for (i = bus->minSlot; i <= bus->maxSlot; i++)
-        if (!bus->slots[i])
-            return false;
-
-    return true;
-}
-
-
 /*
  * This assigns static PCI slots to all configured devices.
  * The ordering here is chosen to match the ordering used
@@ -967,7 +954,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
             goto cleanup;
 
         for (i = 0; i < addrs->nbuses; i++) {
-            if (!qemuDomainPCIBusFullyReserved(&addrs->buses[i]))
+            if (!virDomainPCIBusFullyReserved(&addrs->buses[i]))
                 buses_reserved = false;
         }
 
