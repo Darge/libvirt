@@ -2188,6 +2188,7 @@ struct _virDomainDef {
 
     virDomainCCWAddressSetPtr ccwaddrs;
     virDomainVirtioSerialAddrSetPtr vioserialaddrs;
+    virDomainPCIAddressSetPtr pciaddrs;
 
     /* These options are of type virTristateSwitch: ON = keep, OFF = drop */
     int caps_features[VIR_DOMAIN_CAPS_FEATURE_LAST];
