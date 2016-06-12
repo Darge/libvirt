@@ -540,7 +540,7 @@ bhyveDomainDefineXMLFlags(virConnectPtr conn, const char *xml, unsigned int flag
     if (virDomainDefineXMLFlagsEnsureACL(conn, def) < 0)
         goto cleanup;
 
-    if (bhyveDomainAssignAddresses(def, NULL) < 0)
+    if (bhyveDomainAssignAddresses(def) < 0)
         goto cleanup;
 
     if (!(vm = virDomainObjListAdd(privconn->domains, def,
@@ -724,7 +724,7 @@ bhyveConnectDomainXMLToNative(virConnectPtr conn,
                                   VIR_DOMAIN_DEF_PARSE_INACTIVE)))
         goto cleanup;
 
-    if (bhyveDomainAssignAddresses(def, NULL) < 0)
+    if (bhyveDomainAssignAddresses(def) < 0)
         goto cleanup;
 
     if (!(loadcmd = virBhyveProcessBuildLoadCmd(conn, def, "<device.map>",
@@ -940,7 +940,7 @@ bhyveDomainCreateXML(virConnectPtr conn,
     if (virDomainCreateXMLEnsureACL(conn, def) < 0)
         goto cleanup;
 
-    if (bhyveDomainAssignAddresses(def, NULL) < 0)
+    if (bhyveDomainAssignAddresses(def) < 0)
         goto cleanup;
 
     if (!(vm = virDomainObjListAdd(privconn->domains, def,
