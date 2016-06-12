@@ -229,4 +229,19 @@ virDomainPCIControllerSetDefaultModelName(virDomainControllerDefPtr cont);
 int
 virDomainAddressFindNewBusNr(virDomainDefPtr def);
 
+int
+virDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
+                                      virDomainPCIAddressSetPtr addrs,
+                                      bool qemuDeviceVideoUsable);
+
+int
+virDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
+                                    virDomainPCIAddressSetPtr addrs,
+                                    bool qemuDeviceVideoUsable);
+
+int
+virDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
+                                         virDomainPCIAddressSetPtr addrs,
+                                         bool qemuDeviceVideoUsable);
+
 #endif /* __DOMAIN_ADDR_H__ */
