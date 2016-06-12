@@ -771,6 +771,9 @@ struct _virDomainVirtioSerialAddrSet {
 typedef struct _virDomainVirtioSerialAddrSet virDomainVirtioSerialAddrSet;
 typedef virDomainVirtioSerialAddrSet *virDomainVirtioSerialAddrSetPtr;
 
+typedef struct _virDomainPCIAddressSet virDomainPCIAddressSet;
+typedef virDomainPCIAddressSet *virDomainPCIAddressSetPtr;
+
 /* Types of disk backends */
 typedef enum {
     VIR_DOMAIN_FS_TYPE_MOUNT, /* Mounts (binds) a host dir on a guest dir */
