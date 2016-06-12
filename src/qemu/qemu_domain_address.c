@@ -103,13 +103,12 @@ qemuDomainSetSCSIControllerModel(const virDomainDef *def,
 
 static int
 qemuDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
-                                      virQEMUCapsPtr qemuCaps,
-                                      virDomainPCIAddressSetPtr addrs)
+                                      virDomainPCIAddressSetPtr addrs,
+                                      bool qemuDeviceVideoUsable)
 {
     int ret = -1;
     size_t i;
     virPCIDeviceAddress tmp_addr;
-    bool qemuDeviceVideoUsable = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY);
     char *addrStr = NULL;
     virDomainPCIConnectFlags flags = (VIR_PCI_CONNECT_HOTPLUGGABLE
                                       | VIR_PCI_CONNECT_TYPE_PCI_DEVICE);
@@ -237,13 +236,12 @@ qemuDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
 
 static int
 qemuDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
-                                    virQEMUCapsPtr qemuCaps,
-                                    virDomainPCIAddressSetPtr addrs)
+                                    virDomainPCIAddressSetPtr addrs,
+                                    bool qemuDeviceVideoUsable)
 {
     int ret = -1;
     size_t i;
     virPCIDeviceAddress tmp_addr;
-    bool qemuDeviceVideoUsable = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY);
     char *addrStr = NULL;
     virDomainPCIConnectFlags flags = VIR_PCI_CONNECT_TYPE_PCIE_DEVICE;
 
@@ -429,16 +427,16 @@ qemuDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
 
 static int
 qemuDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
-                                         virQEMUCapsPtr qemuCaps,
-                                         virDomainPCIAddressSetPtr addrs)
+                                         virDomainPCIAddressSetPtr addrs,
+                                         bool qemuDeviceVideoUsable)
 {
     if (qemuDomainMachineIsI440FX(def) &&
-        qemuDomainValidateDevicePCISlotsPIIX3(def, qemuCaps, addrs) < 0) {
+        qemuDomainValidateDevicePCISlotsPIIX3(def, addrs, qemuDeviceVideoUsable) < 0) {
         return -1;
     }
 
     if (qemuDomainMachineIsQ35(def) &&
-        qemuDomainValidateDevicePCISlotsQ35(def, qemuCaps, addrs) < 0) {
+        qemuDomainValidateDevicePCISlotsQ35(def, addrs, qemuDeviceVideoUsable) < 0) {
         return -1;
     }
 
@@ -823,6 +821,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
     size_t i;
     int rv;
     bool buses_reserved = true;
+    bool qemuDeviceVideoUsable = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY);
 
     virDomainPCIConnectFlags flags = VIR_PCI_CONNECT_TYPE_PCI_DEVICE;
 
@@ -843,8 +842,8 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
         if (!(addrs = virDomainPCIAddressSetCreate(def, nbuses, true)))
             goto cleanup;
 
-        if (qemuDomainValidateDevicePCISlotsChipsets(def, qemuCaps,
-                                                     addrs) < 0)
+        if (qemuDomainValidateDevicePCISlotsChipsets(def, addrs,
+                                                     qemuDeviceVideoUsable) < 0)
             goto cleanup;
 
         for (i = 0; i < addrs->nbuses; i++) {
@@ -889,8 +888,8 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
         goto cleanup;
 
     if (qemuDomainSupportsPCI(def, qemuCaps)) {
-        if (qemuDomainValidateDevicePCISlotsChipsets(def, qemuCaps,
-                                                     addrs) < 0)
+        if (qemuDomainValidateDevicePCISlotsChipsets(def, addrs,
+                                                     qemuDeviceVideoUsable) < 0)
             goto cleanup;
 
         if (qemuDomainAssignDevicePCISlots(def, qemuCaps, addrs) < 0)
