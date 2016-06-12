@@ -126,6 +126,7 @@ virDomainPCIControllerModelToConnectType;
 virDomainPCIControllerSetDefaultModelName;
 virDomainPrimeVirtioDeviceAddresses;
 virDomainReleaseDeviceAddress;
+virDomainSupportsPCI;
 virDomainValidateDevicePCISlotsChipsets;
 virDomainValidateDevicePCISlotsPIIX3;
 virDomainValidateDevicePCISlotsQ35;

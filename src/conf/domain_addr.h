@@ -255,4 +255,8 @@ virDomainAssignDevicePCISlots(virDomainDefPtr def,
                                virDomainPCIAddressSetPtr addrs,
                                bool virtio_mmio_capability);
 
+bool
+virDomainSupportsPCI(virDomainDefPtr def,
+                      bool object_gpex_capability);
+
 #endif /* __DOMAIN_ADDR_H__ */

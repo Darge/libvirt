@@ -2607,3 +2607,21 @@ virDomainAssignDevicePCISlots(virDomainDefPtr def,
  error:
     return -1;
 }
+
+
+bool
+virDomainSupportsPCI(virDomainDefPtr def,
+                      bool object_gpex_capability)
+{
+    if ((def->os.arch != VIR_ARCH_ARMV7L) && (def->os.arch != VIR_ARCH_AARCH64))
+        return true;
+
+    if (STREQ(def->os.machine, "versatilepb"))
+        return true;
+
+    if (virDomainMachineIsVirt(def) &&
+        object_gpex_capability)
+        return true;
+
+    return false;
+}

@@ -101,24 +101,6 @@ qemuDomainSetSCSIControllerModel(const virDomainDef *def,
 }
 
 
-static bool
-qemuDomainSupportsPCI(virDomainDefPtr def,
-                      virQEMUCapsPtr qemuCaps)
-{
-    if ((def->os.arch != VIR_ARCH_ARMV7L) && (def->os.arch != VIR_ARCH_AARCH64))
-        return true;
-
-    if (STREQ(def->os.machine, "versatilepb"))
-        return true;
-
-    if (virDomainMachineIsVirt(def) &&
-        virQEMUCapsGet(qemuCaps, QEMU_CAPS_OBJECT_GPEX))
-        return true;
-
-    return false;
-}
-
-
 static int
 qemuDomainAssignPCIAddresses(virDomainDefPtr def,
                              virQEMUCapsPtr qemuCaps,
@@ -133,6 +115,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
     bool buses_reserved = true;
     bool qemuDeviceVideoUsable = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY);
     bool virtio_mmio_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO);
+    bool object_gpex_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_OBJECT_GPEX);
 
     virDomainPCIConnectFlags flags = VIR_PCI_CONNECT_TYPE_PCI_DEVICE;
 
@@ -198,7 +181,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
     if (!(addrs = virDomainPCIAddressSetCreate(def, nbuses, false)))
         goto cleanup;
 
-    if (qemuDomainSupportsPCI(def, qemuCaps)) {
+    if (virDomainSupportsPCI(def, object_gpex_capability)) {
         if (virDomainValidateDevicePCISlotsChipsets(def, addrs,
                                                      qemuDeviceVideoUsable) < 0)
             goto cleanup;
