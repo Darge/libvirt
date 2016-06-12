@@ -1836,7 +1836,7 @@ qemuDomainDefAddDefaultDevices(virDomainDefPtr def,
             addDefaultUSB = false;
             break;
         }
-        if (qemuDomainMachineIsQ35(def)) {
+        if (virDomainMachineIsQ35(def)) {
             addPCIeRoot = true;
             addImplicitSATA = true;
 
@@ -1849,7 +1849,7 @@ qemuDomainDefAddDefaultDevices(virDomainDefPtr def,
                 addDefaultUSB = false;
             break;
         }
-        if (qemuDomainMachineIsI440FX(def))
+        if (virDomainMachineIsI440FX(def))
             addPCIRoot = true;
         break;
 
@@ -2369,14 +2369,14 @@ qemuDomainDeviceDefPostParse(virDomainDeviceDefPtr dev,
 
         if (cont->type == VIR_DOMAIN_CONTROLLER_TYPE_PCI) {
             if (cont->model == VIR_DOMAIN_CONTROLLER_MODEL_PCI_EXPANDER_BUS &&
-                !qemuDomainMachineIsI440FX(def)) {
+                !virDomainMachineIsI440FX(def)) {
                 virReportError(VIR_ERR_CONFIG_UNSUPPORTED, "%s",
                                _("pci-expander-bus controllers are only supported "
                                  "on 440fx-based machinetypes"));
                 goto cleanup;
             }
             if (cont->model == VIR_DOMAIN_CONTROLLER_MODEL_PCIE_EXPANDER_BUS &&
-                !qemuDomainMachineIsQ35(def)) {
+                !virDomainMachineIsQ35(def)) {
                 virReportError(VIR_ERR_CONFIG_UNSUPPORTED, "%s",
                                _("pcie-expander-bus controllers are only supported "
                                  "on q35-based machinetypes"));
@@ -3080,7 +3080,7 @@ qemuDomainDefFormatBuf(virQEMUDriverPtr driver,
          *  with libvirt <= 0.9.4. Limitation doesn't apply to other archs
          *  and can cause problems on PPC64.
          */
-        if (ARCH_IS_X86(def->os.arch) && qemuDomainMachineIsI440FX(def) &&
+        if (ARCH_IS_X86(def->os.arch) && virDomainMachineIsI440FX(def) &&
             usb && usb->idx == 0 && usb->model == -1) {
             VIR_DEBUG("Removing default USB controller from domain '%s'"
                       " for migration compatibility", def->name);
@@ -5048,7 +5048,7 @@ qemuDomainDefValidateMemoryHotplug(const virDomainDef *def,
 bool
 qemuDomainMachineHasBuiltinIDE(const virDomainDef *def)
 {
-    return qemuDomainMachineIsI440FX(def) ||
+    return virDomainMachineIsI440FX(def) ||
         STREQ(def->os.machine, "malta") ||
         STREQ(def->os.machine, "sun4u") ||
         STREQ(def->os.machine, "g3beige");

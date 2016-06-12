@@ -4041,8 +4041,8 @@ virQEMUCapsSupportsVmport(virQEMUCapsPtr qemuCaps,
     if (!virQEMUCapsGet(qemuCaps, QEMU_CAPS_MACHINE_VMPORT_OPT))
         return false;
 
-    return qemuDomainMachineIsI440FX(def) ||
-        qemuDomainMachineIsQ35(def) ||
+    return virDomainMachineIsI440FX(def) ||
+        virDomainMachineIsQ35(def) ||
         STREQ(def->os.machine, "isapc");
 }
 

@@ -245,9 +245,9 @@ virDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
                                          bool qemuDeviceVideoUsable);
 
 bool
-qemuDomainMachineIsQ35(const virDomainDef *def);
+virDomainMachineIsQ35(const virDomainDef *def);
 
 bool
-qemuDomainMachineIsI440FX(const virDomainDef *def);
+virDomainMachineIsI440FX(const virDomainDef *def);
 
 #endif /* __DOMAIN_ADDR_H__ */

@@ -2804,7 +2804,7 @@ qemuBuildControllerDevCommandLine(virCommandPtr cmd,
 
             /* first SATA controller on Q35 machines is implicit */
             if (cont->type == VIR_DOMAIN_CONTROLLER_TYPE_SATA &&
-                cont->idx == 0 && qemuDomainMachineIsQ35(def))
+                cont->idx == 0 && virDomainMachineIsQ35(def))
                     continue;
 
             /* first IDE controller is implicit on various machines */
@@ -2814,7 +2814,7 @@ qemuBuildControllerDevCommandLine(virCommandPtr cmd,
 
             if (cont->type == VIR_DOMAIN_CONTROLLER_TYPE_USB &&
                 cont->model == -1 &&
-                !qemuDomainMachineIsQ35(def)) {
+                !virDomainMachineIsQ35(def)) {
                 bool need_legacy = false;
 
                 /* We're not using legacy usb controller for q35 */
@@ -2850,7 +2850,7 @@ qemuBuildControllerDevCommandLine(virCommandPtr cmd,
     }
 
     if (usbcontroller == 0 &&
-        !qemuDomainMachineIsQ35(def) &&
+        !virDomainMachineIsQ35(def) &&
         !ARCH_IS_S390(def->os.arch))
         virCommandAddArg(cmd, "-usb");
 
@@ -5951,7 +5951,7 @@ qemuBuildPMCommandLine(virCommandPtr cmd,
     if (def->pm.s3) {
         const char *pm_object = "PIIX4_PM";
 
-        if (qemuDomainMachineIsQ35(def) &&
+        if (virDomainMachineIsQ35(def) &&
             virQEMUCapsGet(qemuCaps, QEMU_CAPS_ICH9_DISABLE_S3)) {
             pm_object = "ICH9-LPC";
         } else if (!virQEMUCapsGet(qemuCaps, QEMU_CAPS_PIIX_DISABLE_S3)) {
@@ -5968,7 +5968,7 @@ qemuBuildPMCommandLine(virCommandPtr cmd,
     if (def->pm.s4) {
         const char *pm_object = "PIIX4_PM";
 
-        if (qemuDomainMachineIsQ35(def) &&
+        if (virDomainMachineIsQ35(def) &&
             virQEMUCapsGet(qemuCaps, QEMU_CAPS_ICH9_DISABLE_S4)) {
             pm_object = "ICH9-LPC";
         } else if (!virQEMUCapsGet(qemuCaps, QEMU_CAPS_PIIX_DISABLE_S4)) {
@@ -6161,13 +6161,13 @@ qemuBuildGlobalControllerCommandLine(virCommandPtr cmd,
             case VIR_DOMAIN_CONTROLLER_MODEL_PCI_ROOT:
                 hoststr = "i440FX-pcihost";
                 cap = virQEMUCapsGet(qemuCaps, QEMU_CAPS_I440FX_PCI_HOLE64_SIZE);
-                machine = qemuDomainMachineIsI440FX(def);
+                machine = virDomainMachineIsI440FX(def);
                 break;
 
             case VIR_DOMAIN_CONTROLLER_MODEL_PCIE_ROOT:
                 hoststr = "q35-pcihost";
                 cap = virQEMUCapsGet(qemuCaps, QEMU_CAPS_Q35_PCI_HOLE64_SIZE);
-                machine = qemuDomainMachineIsQ35(def);
+                machine = virDomainMachineIsQ35(def);
                 break;
 
             default:

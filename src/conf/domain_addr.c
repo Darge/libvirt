@@ -1243,6 +1243,8 @@ virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
     - rename virDomainAddressFindNewBusNr to virDomainPCIAddr*?
     - are functions qemu/vir DomainMachineIsQ35 and qemu/vir qemuDomainMachineIsI440FX
       qemu-only, or it's okay that they are moved to domain_addr.c?
+      Is there any better place for them than domain_addr.c? domain_conf?
+      These two functions are executed in many places...
 */
 
 static int
@@ -2227,12 +2229,12 @@ virDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
                                          virDomainPCIAddressSetPtr addrs,
                                          bool qemuDeviceVideoUsable)
 {
-    if (qemuDomainMachineIsI440FX(def) &&
+    if (virDomainMachineIsI440FX(def) &&
         virDomainValidateDevicePCISlotsPIIX3(def, addrs, qemuDeviceVideoUsable) < 0) {
         return -1;
     }
 
-    if (qemuDomainMachineIsQ35(def) &&
+    if (virDomainMachineIsQ35(def) &&
         virDomainValidateDevicePCISlotsQ35(def, addrs, qemuDeviceVideoUsable) < 0) {
         return -1;
     }
@@ -2242,7 +2244,7 @@ virDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
 
 
 bool
-qemuDomainMachineIsQ35(const virDomainDef *def)
+virDomainMachineIsQ35(const virDomainDef *def)
 {
     return (STRPREFIX(def->os.machine, "pc-q35") ||
             STREQ(def->os.machine, "q35"));
@@ -2250,7 +2252,7 @@ qemuDomainMachineIsQ35(const virDomainDef *def)
 
 
 bool
-qemuDomainMachineIsI440FX(const virDomainDef *def)
+virDomainMachineIsI440FX(const virDomainDef *def)
 {
     return (STREQ(def->os.machine, "pc") ||
             STRPREFIX(def->os.machine, "pc-0.") ||
@@ -2258,4 +2260,3 @@ qemuDomainMachineIsI440FX(const virDomainDef *def)
             STRPREFIX(def->os.machine, "pc-i440") ||
             STRPREFIX(def->os.machine, "rhel"));
 }
-
