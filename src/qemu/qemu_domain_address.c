@@ -1135,7 +1135,6 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
 {
     int ret = -1;
     virDomainPCIAddressSetPtr addrs = NULL;
-    qemuDomainObjPrivatePtr priv = NULL;
     int max_idx = -1;
     int nbuses = 0;
     size_t i;
@@ -1349,30 +1348,3 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
     return 0;
 }
 
-
-void
-qemuDomainReleaseDeviceAddress(virDomainObjPtr vm,
-                               virDomainDeviceInfoPtr info,
-                               const char *devstr)
-{
-    qemuDomainObjPrivatePtr priv = vm->privateData;
-
-    if (!devstr)
-        devstr = info->alias;
-
-    if (info->type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW &&
-        virDomainMachineIsS390CCW(vm->def) &&
-        virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW) &&
-        virDomainCCWAddressReleaseAddr(vm->def->ccwaddrs, info) < 0)
-        VIR_WARN("Unable to release CCW address on %s",
-                 NULLSTR(devstr));
-    else if (virDeviceInfoPCIAddressPresent(info) &&
-             virDomainPCIAddressReleaseSlot(vm->def->pciaddrs,
-                                            &info->addr.pci) < 0)
-        VIR_WARN("Unable to release PCI address on %s",
-                 NULLSTR(devstr));
-    if (info->type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_SERIAL &&
-        virDomainVirtioSerialAddrRelease(vm->def->vioserialaddrs, info) < 0)
-        VIR_WARN("Unable to release virtio-serial address on %s",
-                 NULLSTR(devstr));
-}

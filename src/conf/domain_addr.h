@@ -203,4 +203,10 @@ int
 virDomainAssignVirtioSerialAddresses(virDomainDefPtr def,
                                       virDomainObjPtr obj);
 
+void
+virDomainReleaseDeviceAddress(virDomainObjPtr vm,
+                               virDomainDeviceInfoPtr info,
+                               const char *devstr,
+                               bool virtio_ccw_capability);
+
 #endif /* __DOMAIN_ADDR_H__ */

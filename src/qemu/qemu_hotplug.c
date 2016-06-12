@@ -401,7 +401,8 @@ qemuDomainAttachVirtioDiskDevice(virConnectPtr conn,
 
  error:
     if (releaseaddr)
-        qemuDomainReleaseDeviceAddress(vm, &disk->info, src);
+        virDomainReleaseDeviceAddress(vm, &disk->info, src,
+            virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW));
 
     ignore_value(qemuDomainPrepareDisk(driver, vm, disk, NULL, true));
     goto cleanup;
@@ -487,7 +488,8 @@ int qemuDomainAttachControllerDevice(virQEMUDriverPtr driver,
 
  cleanup:
     if (ret != 0 && releaseaddr)
-        qemuDomainReleaseDeviceAddress(vm, &controller->info, NULL);
+        virDomainReleaseDeviceAddress(vm, &controller->info, NULL,
+            virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW));
 
     VIR_FREE(devstr);
     return ret;
@@ -1070,7 +1072,8 @@ qemuDomainAttachNetDevice(virQEMUDriverPtr driver,
         vm->def->nets[vm->def->nnets++] = net;
     } else {
         if (releaseaddr)
-            qemuDomainReleaseDeviceAddress(vm, &net->info, NULL);
+            virDomainReleaseDeviceAddress(vm, &net->info, NULL,
+                virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW));
 
         if (iface_connected) {
             virDomainConfNWFilterTeardown(net);
@@ -1281,7 +1284,8 @@ qemuDomainAttachHostPCIDevice(virQEMUDriverPtr driver,
         VIR_WARN("Unable to restore host device labelling on hotplug fail");
 
     if (releaseaddr)
-        qemuDomainReleaseDeviceAddress(vm, hostdev->info, NULL);
+        virDomainReleaseDeviceAddress(vm, hostdev->info, NULL,
+            virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW));
 
     qemuHostdevReAttachPCIDevices(driver, vm->def->name, &hostdev, 1);
 
@@ -1547,7 +1551,8 @@ int qemuDomainAttachChrDevice(virQEMUDriverPtr driver,
     if (ret < 0 && virDomainObjIsActive(vm))
         qemuDomainChrInsertPreAllocCleanup(vm->def, chr);
     if (ret < 0 && need_release)
-        qemuDomainReleaseDeviceAddress(vm, &chr->info, NULL);
+        virDomainReleaseDeviceAddress(vm, &chr->info, NULL,
+            virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW));
     VIR_FREE(charAlias);
     VIR_FREE(devstr);
     return ret;
@@ -1639,7 +1644,8 @@ qemuDomainAttachRNGDevice(virQEMUDriverPtr driver,
  cleanup:
     virJSONValueFree(props);
     if (ret < 0 && vm)
-        qemuDomainReleaseDeviceAddress(vm, &rng->info, NULL);
+        virDomainReleaseDeviceAddress(vm, &rng->info, NULL,
+            virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW));
     VIR_FREE(charAlias);
     VIR_FREE(objAlias);
     VIR_FREE(devstr);
@@ -2818,7 +2824,8 @@ qemuDomainRemoveDiskDevice(virQEMUDriverPtr driver,
         }
     }
 
-    qemuDomainReleaseDeviceAddress(vm, &disk->info, src);
+    virDomainReleaseDeviceAddress(vm, &disk->info, src,
+        virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW));
 
     if (virSecurityManagerRestoreDiskLabel(driver->securityManager,
                                            vm->def, disk) < 0)
@@ -2846,6 +2853,8 @@ qemuDomainRemoveControllerDevice(virQEMUDriverPtr driver,
 {
     virObjectEventPtr event;
     size_t i;
+    qemuDomainObjPrivatePtr priv = vm->privateData;
+
 
     VIR_DEBUG("Removing controller %s from domain %p %s",
               controller->info.alias, vm, vm->def->name);
@@ -2860,7 +2869,8 @@ qemuDomainRemoveControllerDevice(virQEMUDriverPtr driver,
         }
     }
 
-    qemuDomainReleaseDeviceAddress(vm, &controller->info, NULL);
+    virDomainReleaseDeviceAddress(vm, &controller->info, NULL,
+        virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW));
     virDomainControllerDefFree(controller);
     return 0;
 }
@@ -2919,8 +2929,10 @@ qemuDomainRemovePCIHostDevice(virQEMUDriverPtr driver,
                               virDomainObjPtr vm,
                               virDomainHostdevDefPtr hostdev)
 {
+    qemuDomainObjPrivatePtr priv = vm->privateData;
     qemuHostdevReAttachPCIDevices(driver, vm->def->name, &hostdev, 1);
-    qemuDomainReleaseDeviceAddress(vm, hostdev->info, NULL);
+    virDomainReleaseDeviceAddress(vm, hostdev->info, NULL,
+        virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW));
 }
 
 static void
@@ -3100,7 +3112,8 @@ qemuDomainRemoveNetDevice(virQEMUDriverPtr driver,
         }
     }
 
-    qemuDomainReleaseDeviceAddress(vm, &net->info, NULL);
+    virDomainReleaseDeviceAddress(vm, &net->info, NULL,
+        virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW));
     virDomainConfNWFilterTeardown(net);
 
     if (cfg->macFilter && (net->ifname != NULL)) {
@@ -3221,7 +3234,8 @@ qemuDomainRemoveRNGDevice(virQEMUDriverPtr driver,
 
     if ((idx = virDomainRNGFind(vm->def, rng)) >= 0)
         virDomainRNGRemove(vm->def, idx);
-    qemuDomainReleaseDeviceAddress(vm, &rng->info, NULL);
+    virDomainReleaseDeviceAddress(vm, &rng->info, NULL,
+        virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW));
     virDomainRNGDefFree(rng);
     ret = 0;
 
@@ -4080,7 +4094,8 @@ int qemuDomainDetachChrDevice(virQEMUDriverPtr driver,
         goto cleanup;
 
     if ((ret = qemuDomainWaitForDeviceRemoval(vm)) == 1) {
-        qemuDomainReleaseDeviceAddress(vm, &tmpChr->info, NULL);
+        virDomainReleaseDeviceAddress(vm, &tmpChr->info, NULL,
+            virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW));
         ret = qemuDomainRemoveChrDevice(driver, vm, tmpChr);
     }
 

@@ -1231,6 +1231,10 @@ virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
     - What in the previous code was (obj && obj->privateData) was changed
       to nothing in the address handling (it's when the current address sets are assigned)
       Make sure that it's correct.
+      These lines:
+                virDomainPCIAddressSetFree(def->pciaddrs);
+                def->pciaddrs = addrs;
+                addrs = NULL;
     - Do I really have to move all these declarations of PCI stuff to domain_conf.h
       just because I want to run a function that clears the pci address set?
       That seems like too much, but circular dependencies otherwise.
@@ -1542,5 +1546,32 @@ virDomainAssignVirtioSerialAddresses(virDomainDefPtr def,
  cleanup:
     virDomainVirtioSerialAddrSetFree(addrs);
     return ret;
+}
+
+
+void
+virDomainReleaseDeviceAddress(virDomainObjPtr vm,
+                               virDomainDeviceInfoPtr info,
+                               const char *devstr,
+                               bool virtio_ccw_capability)
+{
+    if (!devstr)
+        devstr = info->alias;
+
+    if (info->type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW &&
+        virDomainMachineIsS390CCW(vm->def) &&
+        virtio_ccw_capability &&
+        virDomainCCWAddressReleaseAddr(vm->def->ccwaddrs, info) < 0)
+        VIR_WARN("Unable to release CCW address on %s",
+                 NULLSTR(devstr));
+    else if (virDeviceInfoPCIAddressPresent(info) &&
+             virDomainPCIAddressReleaseSlot(vm->def->pciaddrs,
+                                            &info->addr.pci) < 0)
+        VIR_WARN("Unable to release PCI address on %s",
+                 NULLSTR(devstr));
+    if (info->type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_SERIAL &&
+        virDomainVirtioSerialAddrRelease(vm->def->vioserialaddrs, info) < 0)
+        VIR_WARN("Unable to release virtio-serial address on %s",
+                 NULLSTR(devstr));
 }
 

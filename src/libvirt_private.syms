@@ -117,6 +117,7 @@ virDomainPCIAddressSlotInUse;
 virDomainPCIAddressValidate;
 virDomainPCIControllerModelToConnectType;
 virDomainPrimeVirtioDeviceAddresses;
+virDomainReleaseDeviceAddress;
 virDomainVirtioSerialAddrAssign;
 virDomainVirtioSerialAddrAutoAssign;
 virDomainVirtioSerialAddrIsComplete;
