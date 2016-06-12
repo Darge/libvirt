@@ -209,4 +209,10 @@ virDomainReleaseDeviceAddress(virDomainObjPtr vm,
                                const char *devstr,
                                bool virtio_ccw_capability);
 
+int
+virDomainCollectPCIAddress(virDomainDefPtr def ATTRIBUTE_UNUSED,
+                            virDomainDeviceDefPtr device,
+                            virDomainDeviceInfoPtr info,
+                            void *opaque);
+
 #endif /* __DOMAIN_ADDR_H__ */

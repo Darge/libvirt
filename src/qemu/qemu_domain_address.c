@@ -101,146 +101,6 @@ qemuDomainSetSCSIControllerModel(const virDomainDef *def,
 }
 
 
-static int
-qemuDomainCollectPCIAddress(virDomainDefPtr def ATTRIBUTE_UNUSED,
-                            virDomainDeviceDefPtr device,
-                            virDomainDeviceInfoPtr info,
-                            void *opaque)
-{
-    virDomainPCIAddressSetPtr addrs = opaque;
-    int ret = -1;
-    virPCIDeviceAddressPtr addr = &info->addr.pci;
-    bool entireSlot;
-    /* flags may be changed from default below */
-    virDomainPCIConnectFlags flags = (VIR_PCI_CONNECT_HOTPLUGGABLE |
-                                      VIR_PCI_CONNECT_TYPE_PCI_DEVICE);
-
-    if (!virDeviceInfoPCIAddressPresent(info) ||
-        ((device->type == VIR_DOMAIN_DEVICE_HOSTDEV) &&
-         (device->data.hostdev->parent.type != VIR_DOMAIN_DEVICE_NONE))) {
-        /* If a hostdev has a parent, its info will be a part of the
-         * parent, and will have its address collected during the scan
-         * of the parent's device type.
-        */
-        return 0;
-    }
-
-    /* Change flags according to differing requirements of different
-     * devices.
-     */
-    switch (device->type) {
-    case VIR_DOMAIN_DEVICE_CONTROLLER:
-        switch (device->data.controller->type) {
-        case  VIR_DOMAIN_CONTROLLER_TYPE_PCI:
-           flags = virDomainPCIControllerModelToConnectType(device->data.controller->model);
-            break;
-
-        case VIR_DOMAIN_CONTROLLER_TYPE_SATA:
-            /* SATA controllers aren't hot-plugged, and can be put in
-             * either a PCI or PCIe slot
-             */
-            flags = (VIR_PCI_CONNECT_TYPE_PCI_DEVICE
-                     | VIR_PCI_CONNECT_TYPE_PCIE_DEVICE);
-            break;
-
-        case VIR_DOMAIN_CONTROLLER_TYPE_USB:
-            /* allow UHCI and EHCI controllers to be manually placed on
-             * the PCIe bus (but don't put them there automatically)
-             */
-            switch (device->data.controller->model) {
-            case VIR_DOMAIN_CONTROLLER_MODEL_USB_EHCI:
-            case VIR_DOMAIN_CONTROLLER_MODEL_USB_ICH9_EHCI1:
-            case VIR_DOMAIN_CONTROLLER_MODEL_USB_ICH9_UHCI1:
-            case VIR_DOMAIN_CONTROLLER_MODEL_USB_ICH9_UHCI2:
-            case VIR_DOMAIN_CONTROLLER_MODEL_USB_ICH9_UHCI3:
-            case VIR_DOMAIN_CONTROLLER_MODEL_USB_VT82C686B_UHCI:
-                flags = VIR_PCI_CONNECT_TYPE_PCI_DEVICE;
-                break;
-            case VIR_DOMAIN_CONTROLLER_MODEL_USB_NEC_XHCI:
-                /* should this be PCIE-only? Or do we need to allow PCI
-                 * for backward compatibility?
-                 */
-                flags = (VIR_PCI_CONNECT_TYPE_PCI_DEVICE
-                         | VIR_PCI_CONNECT_TYPE_PCIE_DEVICE);
-                break;
-            case VIR_DOMAIN_CONTROLLER_MODEL_USB_PCI_OHCI:
-            case VIR_DOMAIN_CONTROLLER_MODEL_USB_PIIX3_UHCI:
-            case VIR_DOMAIN_CONTROLLER_MODEL_USB_PIIX4_UHCI:
-                /* Allow these for PCI only */
-                break;
-            }
-        }
-        break;
-
-    case VIR_DOMAIN_DEVICE_SOUND:
-        switch (device->data.sound->model) {
-        case VIR_DOMAIN_SOUND_MODEL_ICH6:
-        case VIR_DOMAIN_SOUND_MODEL_ICH9:
-            flags = VIR_PCI_CONNECT_TYPE_PCI_DEVICE;
-            break;
-        }
-        break;
-
-    case VIR_DOMAIN_DEVICE_VIDEO:
-        /* video cards aren't hot-plugged, and can be put in either a
-         * PCI or PCIe slot
-         */
-       flags = (VIR_PCI_CONNECT_TYPE_PCI_DEVICE
-                | VIR_PCI_CONNECT_TYPE_PCIE_DEVICE);
-        break;
-    }
-
-    /* Ignore implicit controllers on slot 0:0:1.0:
-     * implicit IDE controller on 0:0:1.1 (no qemu command line)
-     * implicit USB controller on 0:0:1.2 (-usb)
-     *
-     * If the machine does have a PCI bus, they will get reserved
-     * in qemuDomainAssignDevicePCISlots().
-     */
-
-    /* These are the IDE and USB controllers in the PIIX3, hardcoded
-     * to bus 0 slot 1.  They cannot be attached to a PCIe slot, only
-     * PCI.
-     */
-    if (device->type == VIR_DOMAIN_DEVICE_CONTROLLER && addr->domain == 0 &&
-        addr->bus == 0 && addr->slot == 1) {
-        virDomainControllerDefPtr cont = device->data.controller;
-
-        if ((cont->type == VIR_DOMAIN_CONTROLLER_TYPE_IDE && cont->idx == 0 &&
-             addr->function == 1) ||
-            (cont->type == VIR_DOMAIN_CONTROLLER_TYPE_USB && cont->idx == 0 &&
-             (cont->model == VIR_DOMAIN_CONTROLLER_MODEL_USB_PIIX3_UHCI ||
-              cont->model == -1) && addr->function == 2)) {
-            /* Note the check for nbuses > 0 - if there are no PCI
-             * buses, we skip this check. This is a quirk required for
-             * some machinetypes such as s390, which pretend to have a
-             * PCI bus for long enough to generate the "-usb" on the
-             * commandline, but that don't really care if a PCI bus
-             * actually exists. */
-            if (addrs->nbuses > 0 &&
-                !(addrs->buses[0].flags & VIR_PCI_CONNECT_TYPE_PCI_DEVICE)) {
-                virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
-                               _("Bus 0 must be PCI for integrated PIIX3 "
-                                 "USB or IDE controllers"));
-                return -1;
-            } else {
-                return 0;
-            }
-        }
-    }
-
-    entireSlot = (addr->function == 0 &&
-                  addr->multi != VIR_TRISTATE_SWITCH_ON);
-
-    if (virDomainPCIAddressReserveAddr(addrs, addr, flags,
-                                       entireSlot, true) < 0)
-        goto cleanup;
-
-    ret = 0;
- cleanup:
-    return ret;
-}
-
 static virDomainPCIAddressSetPtr
 qemuDomainPCIAddressSetCreate(virDomainDefPtr def,
                               unsigned int nbuses,
@@ -288,7 +148,7 @@ qemuDomainPCIAddressSetCreate(virDomainDefPtr def,
             goto error;
         }
 
-    if (virDomainDeviceInfoIterate(def, qemuDomainCollectPCIAddress, addrs) < 0)
+    if (virDomainDeviceInfoIterate(def, virDomainCollectPCIAddress, addrs) < 0)
         goto error;
 
     return addrs;
@@ -411,7 +271,7 @@ qemuDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
                                _("Primary video card must have PCI address 0:0:2.0"));
                 goto cleanup;
             }
-            /* If TYPE == PCI, then qemuDomainCollectPCIAddress() function
+            /* If TYPE == PCI, then virDomainCollectPCIAddress() function
              * has already reserved the address, so we must skip */
         }
     } else if (addrs->nbuses && !qemuDeviceVideoUsable) {
@@ -602,7 +462,7 @@ qemuDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
                                _("Primary video card must have PCI address 0:0:1.0"));
                 goto cleanup;
             }
-            /* If TYPE == PCI, then qemuDomainCollectPCIAddress() function
+            /* If TYPE == PCI, then virDomainCollectPCIAddress() function
              * has already reserved the address, so we must skip */
         }
     } else if (addrs->nbuses && !qemuDeviceVideoUsable) {
@@ -688,7 +548,7 @@ qemuDomainPCIBusFullyReserved(virDomainPCIAddressBusPtr bus)
  *  - Watchdog
  *  - pci serial devices
  *
- * Prior to this function being invoked, qemuDomainCollectPCIAddress() will have
+ * Prior to this function being invoked, virDomainCollectPCIAddress() will have
  * added all existing PCI addresses from the 'def' to 'addrs'. Thus this
  * function must only try to reserve addresses if info.type == NONE and
  * skip over info.type == PCI
