@@ -252,7 +252,9 @@ struct _virAllocOptions {
   virBitmapPtr flags;
 };
 
-virAllocOptionsPtr virAllocOptionsNew(void);
+virAllocOptionsPtr virAllocOptionsCreate(void);
+
+void virAllocOptionsFree(virAllocOptionsPtr allocOpts);
 
 
 #endif /* __DOMAIN_ADDR_H__ */

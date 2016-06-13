@@ -811,6 +811,9 @@ struct _virDomainPCIAddressSet {
 typedef struct _virDomainPCIAddressSet virDomainPCIAddressSet;
 typedef virDomainPCIAddressSet *virDomainPCIAddressSetPtr;
 
+typedef struct _virAllocOptions virAllocOptions;
+typedef virAllocOptions *virAllocOptionsPtr;
+
 /* Types of disk backends */
 typedef enum {
     VIR_DOMAIN_FS_TYPE_MOUNT, /* Mounts (binds) a host dir on a guest dir */
@@ -2226,6 +2229,8 @@ struct _virDomainDef {
     virDomainCCWAddressSetPtr ccwaddrs;
     virDomainVirtioSerialAddrSetPtr vioserialaddrs;
     virDomainPCIAddressSetPtr pciaddrs;
+
+    virAllocOptionsPtr allocOpts;
 
     /* These options are of type virTristateSwitch: ON = keep, OFF = drop */
     int caps_features[VIR_DOMAIN_CAPS_FEATURE_LAST];

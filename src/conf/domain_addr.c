@@ -2630,7 +2630,7 @@ virDomainSupportsPCI(virDomainDefPtr def,
 }
 
 virAllocOptionsPtr
-virAllocOptionsNew(void)
+virAllocOptionsCreate(void)
 {
     virAllocOptionsPtr allocOpts;
 
@@ -2646,4 +2646,14 @@ virAllocOptionsNew(void)
     VIR_FREE(allocOpts);
 
     return NULL;
+}
+
+void
+virAllocOptionsFree(virAllocOptionsPtr allocOpts)
+{
+    if (!allocOpts)
+        return;
+
+    virBitmapFree(allocOpts->flags);
+    VIR_FREE(allocOpts);
 }

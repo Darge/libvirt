@@ -325,9 +325,9 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
     return 0;
 }
 
-int
-qemuFillAllocOpts(virAllocOptionsPtr allocOpts,
-                  virQEMUCapsPtr qemuCaps)
+static int
+qemuAllocOptionsFill(virAllocOptionsPtr allocOpts,
+                     virQEMUCapsPtr qemuCaps)
 {
     virBitmapPtr flags = allocOpts->flags;
 
@@ -363,4 +363,25 @@ qemuFillAllocOpts(virAllocOptionsPtr allocOpts,
             return -1;
 
   return 0;
+}
+
+int
+qemuAllocOptionsSet(virDomainDefPtr def,
+                    virQEMUCapsPtr qemuCaps)
+{
+    virAllocOptionsPtr allocOpts = NULL;
+
+    if (!(allocOpts = virAllocOptionsCreate()))
+        goto error;
+
+    if (qemuAllocOptionsFill(allocOpts, qemuCaps) < 1)
+        goto error;
+
+    virAllocOptionsFree(def->allocOpts);
+    def->allocOpts = allocOpts;
+
+    return 0;
+
+ error:
+    virAllocOptionsFree(allocOpts);
 }
