@@ -2657,3 +2657,10 @@ virAllocOptionsFree(virAllocOptionsPtr allocOpts)
     virBitmapFree(allocOpts->flags);
     VIR_FREE(allocOpts);
 }
+
+bool
+virAllocOptionsGet(virAllocOptionsPtr allocOpts,
+                   virAddressAllocationFlags flag)
+{
+    return allocOpts && virBitmapIsBitSet(allocOpts->flags, flag);
+}

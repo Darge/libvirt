@@ -384,4 +384,5 @@ qemuAllocOptionsSet(virDomainDefPtr def,
 
  error:
     virAllocOptionsFree(allocOpts);
+    return -1;
 }

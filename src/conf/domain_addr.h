@@ -256,5 +256,7 @@ virAllocOptionsPtr virAllocOptionsCreate(void);
 
 void virAllocOptionsFree(virAllocOptionsPtr allocOpts);
 
+bool virAllocOptionsGet(virAllocOptionsPtr allocOpts,
+                        virAddressAllocationFlags flag);
 
 #endif /* __DOMAIN_ADDR_H__ */
