@@ -89,6 +89,7 @@ virPCIDeviceAddressParseXML;
 # conf/domain_addr.h
 virAllocOptionsCreate;
 virAllocOptionsFree;
+virAllocOptionsGet;
 virDomainAddressFindNewBusNr;
 virDomainAssignARMVirtioMMIOAddresses;
 virDomainAssignDevicePCISlots;
