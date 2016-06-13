@@ -290,6 +290,9 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
 {
     size_t i;
     int model;
+
+    if (qemuAllocOptionsSet(def, qemuCaps) < 0)
+        return -1;
     //bool virtio_ccw_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_CCW);
     //bool virtio_s390_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_S390);
     //bool virtio_mmio_capability = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO);
@@ -375,10 +378,10 @@ qemuAllocOptionsSet(virDomainDefPtr def,
 {
     virAllocOptionsPtr allocOpts = NULL;
 
-    if (!(allocOpts = virAllocOptionsCreate()))
+    if (allocOpts = virAllocOptionsCreate() < 0)
         goto error;
 
-    if (qemuAllocOptionsFill(allocOpts, qemuCaps) < 1)
+    if (qemuAllocOptionsFill(allocOpts, qemuCaps) < 0)
         goto error;
 
     virAllocOptionsFree(def->allocOpts);
