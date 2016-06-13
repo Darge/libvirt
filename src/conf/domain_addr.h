@@ -138,125 +138,98 @@ virDomainCCWAddressSetPtr virDomainCCWAddressSetCreate(void);
 
 virDomainVirtioSerialAddrSetPtr
 virDomainVirtioSerialAddrSetCreate(void);
-int
-virDomainVirtioSerialAddrSetAddControllers(virDomainVirtioSerialAddrSetPtr addrs,
+int virDomainVirtioSerialAddrSetAddControllers(virDomainVirtioSerialAddrSetPtr addrs,
                                            virDomainDefPtr def)
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
-bool
-virDomainVirtioSerialAddrIsComplete(virDomainDeviceInfoPtr info);
-int
-virDomainVirtioSerialAddrAutoAssign(virDomainDefPtr def,
+bool virDomainVirtioSerialAddrIsComplete(virDomainDeviceInfoPtr info);
+int virDomainVirtioSerialAddrAutoAssign(virDomainDefPtr def,
                                     virDomainVirtioSerialAddrSetPtr addrs,
                                     virDomainDeviceInfoPtr info,
                                     bool allowZero)
     ATTRIBUTE_NONNULL(2) ATTRIBUTE_NONNULL(3);
 
-int
-virDomainVirtioSerialAddrAssign(virDomainDefPtr def,
+int virDomainVirtioSerialAddrAssign(virDomainDefPtr def,
                                 virDomainVirtioSerialAddrSetPtr addrs,
                                 virDomainDeviceInfoPtr info,
                                 bool allowZero,
                                 bool portOnly)
     ATTRIBUTE_NONNULL(2) ATTRIBUTE_NONNULL(3);
 
-int
-virDomainVirtioSerialAddrReserve(virDomainDefPtr def,
+int virDomainVirtioSerialAddrReserve(virDomainDefPtr def,
                                  virDomainDeviceDefPtr dev,
                                  virDomainDeviceInfoPtr info,
                                  void *data)
     ATTRIBUTE_NONNULL(3) ATTRIBUTE_NONNULL(4);
 
-int
-virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
+int virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
                                  virDomainDeviceInfoPtr info)
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
 
-int
-virDomainDeviceAddressAssignSpaprVIO(virDomainDefPtr def,
+int virDomainDeviceAddressAssignSpaprVIO(virDomainDefPtr def,
                                 virDomainDeviceInfoPtr info,
                                 unsigned long long default_reg);
 
-int
-virDomainAssignSpaprVIOAddresses(virDomainDefPtr def);
+int virDomainAssignSpaprVIOAddresses(virDomainDefPtr def);
 
-void
-virDomainPrimeVirtioDeviceAddresses(virDomainDefPtr def,
+void virDomainPrimeVirtioDeviceAddresses(virDomainDefPtr def,
                                      virDomainDeviceAddressType type);
 
-int
-virDomainAssignS390Addresses(virDomainDefPtr def,
+int virDomainAssignS390Addresses(virDomainDefPtr def,
                               virDomainObjPtr obj,
                               bool virtio_ccw_capability,
                               bool virtio_s390_capability);
 
-bool
-virDomainMachineIsS390CCW(const virDomainDef *def);
+bool virDomainMachineIsS390CCW(const virDomainDef *def);
 
-bool
-virDomainMachineIsVirt(const virDomainDef *def);
+bool virDomainMachineIsVirt(const virDomainDef *def);
 
-bool
-virDomainMachineIsQ35(const virDomainDef *def);
+bool virDomainMachineIsQ35(const virDomainDef *def);
 
-bool
-virDomainMachineIsI440FX(const virDomainDef *def);
+bool virDomainMachineIsI440FX(const virDomainDef *def);
 
-void
-virDomainAssignARMVirtioMMIOAddresses(virDomainDefPtr def,
-                                       bool virtio_mmio_capability);
+void virDomainAssignARMVirtioMMIOAddresses(virDomainDefPtr def,
+                                           bool virtio_mmio_capability);
 
-int
-virDomainAssignVirtioSerialAddresses(virDomainDefPtr def,
-                                      virDomainObjPtr obj);
+int virDomainAssignVirtioSerialAddresses(virDomainDefPtr def,
+                                         virDomainObjPtr obj);
 
-void
-virDomainReleaseDeviceAddress(virDomainObjPtr vm,
+void virDomainReleaseDeviceAddress(virDomainObjPtr vm,
+                                   virDomainDeviceInfoPtr info,
+                                   const char *devstr,
+                                   bool virtio_ccw_capability);
+
+int virDomainCollectPCIAddress(virDomainDefPtr def ATTRIBUTE_UNUSED,
+                               virDomainDeviceDefPtr device,
                                virDomainDeviceInfoPtr info,
-                               const char *devstr,
-                               bool virtio_ccw_capability);
+                               void *opaque);
 
-int
-virDomainCollectPCIAddress(virDomainDefPtr def ATTRIBUTE_UNUSED,
-                            virDomainDeviceDefPtr device,
-                            virDomainDeviceInfoPtr info,
-                            void *opaque);
+virDomainPCIAddressSetPtr virDomainPCIAddressSetCreate(virDomainDefPtr def,
+                                                       unsigned int nbuses,
+                                                       bool dryRun);
 
-virDomainPCIAddressSetPtr
-virDomainPCIAddressSetCreate(virDomainDefPtr def,
-                              unsigned int nbuses,
-                              bool dryRun);
+bool virDomainPCIBusFullyReserved(virDomainPCIAddressBusPtr bus);
 
-bool
-virDomainPCIBusFullyReserved(virDomainPCIAddressBusPtr bus);
+void virDomainPCIControllerSetDefaultModelName(virDomainControllerDefPtr cont);
 
-void
-virDomainPCIControllerSetDefaultModelName(virDomainControllerDefPtr cont);
+int virDomainAddressFindNewBusNr(virDomainDefPtr def);
 
-int
-virDomainAddressFindNewBusNr(virDomainDefPtr def);
-
-int
-virDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
-                                      virDomainPCIAddressSetPtr addrs,
-                                      bool qemuDeviceVideoUsable);
-
-int
-virDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
-                                    virDomainPCIAddressSetPtr addrs,
-                                    bool qemuDeviceVideoUsable);
-
-int
-virDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
+int virDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
                                          virDomainPCIAddressSetPtr addrs,
                                          bool qemuDeviceVideoUsable);
 
-int
-virDomainAssignDevicePCISlots(virDomainDefPtr def,
-                               virDomainPCIAddressSetPtr addrs,
-                               bool virtio_mmio_capability);
+int virDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
+                                       virDomainPCIAddressSetPtr addrs,
+                                       bool qemuDeviceVideoUsable);
 
-bool
-virDomainSupportsPCI(virDomainDefPtr def,
-                      bool object_gpex_capability);
+int virDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
+                                            virDomainPCIAddressSetPtr addrs,
+                                            bool qemuDeviceVideoUsable);
+
+int virDomainAssignDevicePCISlots(virDomainDefPtr def,
+                                  virDomainPCIAddressSetPtr addrs,
+                                  bool virtio_mmio_capability);
+
+bool virDomainSupportsPCI(virDomainDefPtr def,
+                          bool object_gpex_capability);
 
 #endif /* __DOMAIN_ADDR_H__ */
