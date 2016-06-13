@@ -330,6 +330,7 @@ qemuFillAllocOpts(virAllocOptionsPtr allocOpts,
                   virQEMUCapsPtr qemuCaps)
 {
     virBitmapPtr flags = allocOpts->flags;
+
     if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_CCW)
         && virBitmapSetBit(flags, ALLOC_VIRTIO_CCW) < 0)
             return -1;
@@ -363,4 +364,3 @@ qemuFillAllocOpts(virAllocOptionsPtr allocOpts,
 
   return 0;
 }
-
