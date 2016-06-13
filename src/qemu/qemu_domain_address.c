@@ -325,3 +325,42 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
     return 0;
 }
 
+int
+qemuFillAllocOpts(virAllocOptionsPtr allocOpts,
+                  virQEMUCapsPtr qemuCaps)
+{
+    virBitmapPtr flags = allocOpts->flags;
+    if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_CCW)
+        && virBitmapSetBit(flags, ALLOC_VIRTIO_CCW) < 0)
+            return -1;
+    if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_S390)
+        && virBitmapSetBit(flags, ALLOC_VIRTIO_S390) < 0)
+            return -1;
+    if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO)
+        && virBitmapSetBit(flags, ALLOC_DEVICE_VIRTIO_MMIO) < 0)
+            return -1;
+    if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_SCSI_LSI)
+        && virBitmapSetBit(flags, ALLOC_SCSI_LSI) < 0)
+            return -1;
+    if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_SCSI)
+        && virBitmapSetBit(flags, ALLOC_VIRTIO_SCSI) < 0)
+            return -1;
+    if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_SCSI_MPTSAS1068)
+        && virBitmapSetBit(flags, ALLOC_SCSI_MPTSAS1068) < 0)
+            return -1;
+    if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_SCSI_MEGASAS)
+        && virBitmapSetBit(flags, ALLOC_SCSI_MEGASAS) < 0)
+            return -1;
+    if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY)
+        && virBitmapSetBit(flags, ALLOC_DEVICE_VIDEO_PRIMARY) < 0)
+            return -1;
+    if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_OBJECT_GPEX)
+        && virBitmapSetBit(flags, ALLOC_OBJECT_GPEX) < 0)
+            return -1;
+    if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_PCI_BRIDGE)
+        && virBitmapSetBit(flags, ALLOC_DEVICE_PCI_BRIDGE) < 0)
+            return -1;
+
+  return 0;
+}
+

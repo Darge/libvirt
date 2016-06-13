@@ -36,6 +36,10 @@ int qemuDomainAssignAddresses(virDomainDefPtr def,
                               virDomainObjPtr obj)
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
 
+int
+qemuFillAllocOpts(virAllocOptionsPtr allocOpts,
+                  virQEMUCapsPtr qemuCaps);
+
 # define __QEMU_DOMAIN_ADDRESS_H__
 
 #endif /* __QEMU_DOMAIN_ADDRESS_H__ */

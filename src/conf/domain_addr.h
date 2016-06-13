@@ -232,4 +232,27 @@ int virDomainAssignDevicePCISlots(virDomainDefPtr def,
 bool virDomainSupportsPCI(virDomainDefPtr def,
                           bool object_gpex_capability);
 
+typedef enum {
+  ALLOC_VIRTIO_CCW,
+  ALLOC_VIRTIO_S390,
+  ALLOC_DEVICE_VIRTIO_MMIO,
+  ALLOC_SCSI_LSI,
+  ALLOC_VIRTIO_SCSI,
+  ALLOC_SCSI_MPTSAS1068,
+  ALLOC_SCSI_MEGASAS,
+  ALLOC_DEVICE_VIDEO_PRIMARY,
+  ALLOC_OBJECT_GPEX,
+  ALLOC_DEVICE_PCI_BRIDGE,
+  ALLOC_LAST_FLAG
+} virAddressAllocationFlags;
+
+typedef struct _virAllocOptions virAllocOptions;
+typedef virAllocOptions *virAllocOptionsPtr;
+struct _virAllocOptions {
+  virBitmapPtr flags;
+};
+
+virAllocOptionsPtr virAllocOptionsNew(void);
+
+
 #endif /* __DOMAIN_ADDR_H__ */

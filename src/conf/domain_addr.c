@@ -1247,6 +1247,7 @@ virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
       These two functions are executed in many places...
     - change name from deviceVideoUsable to something better
     - change the names of these booleans to something better, not a_b_capability
+    - move the definition of allocopts to some better place, not the bottom of a header file
 */
 
 static int
@@ -2626,4 +2627,23 @@ virDomainSupportsPCI(virDomainDefPtr def,
         return true;
 
     return false;
+}
+
+virAllocOptionsPtr
+virAllocOptionsNew(void)
+{
+    virAllocOptionsPtr allocOpts;
+
+    if (VIR_ALLOC(allocOpts) < 0)
+        return NULL;
+
+    if (!(allocOpts->flags = virBitmapNew(ALLOC_LAST_FLAG)))
+        goto cleanup;
+
+    return allocOpts;
+
+ cleanup:
+    VIR_FREE(allocOpts);
+
+    return NULL;
 }
