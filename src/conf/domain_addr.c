@@ -2632,7 +2632,7 @@ virDomainSupportsPCI(virDomainDefPtr def,
 virAllocOptionsPtr
 virAllocOptionsCreate(void)
 {
-    virAllocOptionsPtr allocOpts;
+    virAllocOptionsPtr allocOpts = NULL;
 
     if (VIR_ALLOC(allocOpts) < 0)
         return NULL;
