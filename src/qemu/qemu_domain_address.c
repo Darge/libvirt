@@ -378,7 +378,7 @@ qemuAllocOptionsSet(virDomainDefPtr def,
 {
     virAllocOptionsPtr allocOpts = NULL;
 
-    if (allocOpts = virAllocOptionsCreate() < 0)
+    if ((allocOpts = virAllocOptionsCreate()) == NULL)
         goto error;
 
     if (qemuAllocOptionsFill(allocOpts, qemuCaps) < 0)
