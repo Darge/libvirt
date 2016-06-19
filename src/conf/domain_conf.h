@@ -2089,6 +2089,21 @@ struct _virDomainMemtune {
     unsigned long long swap_hard_limit; /* in kibibytes, limit at off_t bytes */
 };
 
+struct _virDomainVirtioSerialController {
+    unsigned int idx;
+    virBitmapPtr ports;
+};
+
+typedef struct _virDomainVirtioSerialController virDomainVirtioSerialController;
+typedef virDomainVirtioSerialController *virDomainVirtioSerialControllerPtr;
+
+struct _virDomainVirtioSerialAddrSet {
+    virDomainVirtioSerialControllerPtr *controllers;
+    size_t ncontrollers;
+};
+typedef struct _virDomainVirtioSerialAddrSet virDomainVirtioSerialAddrSet;
+typedef virDomainVirtioSerialAddrSet *virDomainVirtioSerialAddrSetPtr;
+
 typedef struct _virDomainPowerManagement virDomainPowerManagement;
 typedef virDomainPowerManagement *virDomainPowerManagementPtr;
 
@@ -2254,6 +2269,8 @@ struct _virDomainDef {
     virDomainXMLNamespace ns;
 
     virDomainKeyWrapDefPtr keywrap;
+
+    virDomainVirtioSerialAddrSetPtr vioserialaddrs;
 
     /* Application-specific custom metadata */
     xmlNodePtr metadata;
@@ -2526,6 +2543,8 @@ void virDomainDefClearPCIAddresses(virDomainDefPtr def);
 void virDomainDefClearCCWAddresses(virDomainDefPtr def);
 void virDomainDefClearDeviceAliases(virDomainDefPtr def);
 void virDomainTPMDefFree(virDomainTPMDefPtr def);
+void virDomainVirtioSerialControllerFree(virDomainVirtioSerialControllerPtr cont);
+void virDomainVirtioSerialAddrSetFree(virDomainVirtioSerialAddrSetPtr addrs);
 
 typedef int (*virDomainDeviceInfoCallback)(virDomainDefPtr def,
                                            virDomainDeviceDefPtr dev,

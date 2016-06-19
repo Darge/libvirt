@@ -113,7 +113,6 @@ qemuDomainAssignVirtioSerialAddresses(virDomainDefPtr def,
     int ret = -1;
     size_t i;
     virDomainVirtioSerialAddrSetPtr addrs = NULL;
-    qemuDomainObjPrivatePtr priv = NULL;
 
     if (!(addrs = virDomainVirtioSerialAddrSetCreate()))
         goto cleanup;
@@ -145,11 +144,10 @@ qemuDomainAssignVirtioSerialAddresses(virDomainDefPtr def,
             goto cleanup;
     }
 
-    if (obj && obj->privateData) {
-        priv = obj->privateData;
+    if (obj) {
         /* if this is the live domain object, we persist the addresses */
-        virDomainVirtioSerialAddrSetFree(priv->vioserialaddrs);
-        priv->vioserialaddrs = addrs;
+        virDomainVirtioSerialAddrSetFree(def->vioserialaddrs);
+        def->vioserialaddrs = addrs;
         addrs = NULL;
     }
     ret = 0;
@@ -1670,7 +1668,7 @@ qemuDomainReleaseDeviceAddress(virDomainObjPtr vm,
         VIR_WARN("Unable to release PCI address on %s",
                  NULLSTR(devstr));
     if (info->type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_SERIAL &&
-        virDomainVirtioSerialAddrRelease(priv->vioserialaddrs, info) < 0)
+        virDomainVirtioSerialAddrRelease(vm->def->vioserialaddrs, info) < 0)
         VIR_WARN("Unable to release virtio-serial address on %s",
                  NULLSTR(devstr));
 }

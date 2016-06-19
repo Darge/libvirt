@@ -2514,6 +2514,28 @@ virDomainLoaderDefFree(virDomainLoaderDefPtr loader)
     VIR_FREE(loader);
 }
 
+void
+virDomainVirtioSerialControllerFree(virDomainVirtioSerialControllerPtr cont)
+{
+    if (cont) {
+        virBitmapFree(cont->ports);
+        VIR_FREE(cont);
+    }
+}
+
+void
+virDomainVirtioSerialAddrSetFree(virDomainVirtioSerialAddrSetPtr addrs)
+{
+    size_t i;
+    if (addrs) {
+        for (i = 0; i < addrs->ncontrollers; i++)
+            virDomainVirtioSerialControllerFree(addrs->controllers[i]);
+        VIR_FREE(addrs->controllers);
+        VIR_FREE(addrs);
+    }
+}
+
+
 void virDomainDefFree(virDomainDefPtr def)
 {
     size_t i;
@@ -2681,6 +2703,8 @@ void virDomainDefFree(virDomainDefPtr def)
 
     if (def->namespaceData && def->ns.free)
         (def->ns.free)(def->namespaceData);
+
+    virDomainVirtioSerialAddrSetFree(def->vioserialaddrs);
 
     xmlFreeNode(def->metadata);
 
