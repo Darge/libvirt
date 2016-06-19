@@ -805,15 +805,6 @@ virDomainCCWAddressReleaseAddr(virDomainCCWAddressSetPtr addrs,
     return ret;
 }
 
-void virDomainCCWAddressSetFree(virDomainCCWAddressSetPtr addrs)
-{
-    if (!addrs)
-        return;
-
-    virHashFree(addrs->defined);
-    VIR_FREE(addrs);
-}
-
 virDomainCCWAddressSetPtr
 virDomainCCWAddressSetCreate(void)
 {

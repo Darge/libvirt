@@ -2104,6 +2104,13 @@ struct _virDomainVirtioSerialAddrSet {
 typedef struct _virDomainVirtioSerialAddrSet virDomainVirtioSerialAddrSet;
 typedef virDomainVirtioSerialAddrSet *virDomainVirtioSerialAddrSetPtr;
 
+struct _virDomainCCWAddressSet {
+    virHashTablePtr defined;
+    virDomainDeviceCCWAddress next;
+};
+typedef struct _virDomainCCWAddressSet virDomainCCWAddressSet;
+typedef virDomainCCWAddressSet *virDomainCCWAddressSetPtr;
+
 typedef struct _virDomainPowerManagement virDomainPowerManagement;
 typedef virDomainPowerManagement *virDomainPowerManagementPtr;
 
@@ -2271,6 +2278,7 @@ struct _virDomainDef {
     virDomainKeyWrapDefPtr keywrap;
 
     virDomainVirtioSerialAddrSetPtr vioserialaddrs;
+    virDomainCCWAddressSetPtr ccwaddrs;
 
     /* Application-specific custom metadata */
     xmlNodePtr metadata;
@@ -2545,6 +2553,7 @@ void virDomainDefClearDeviceAliases(virDomainDefPtr def);
 void virDomainTPMDefFree(virDomainTPMDefPtr def);
 void virDomainVirtioSerialControllerFree(virDomainVirtioSerialControllerPtr cont);
 void virDomainVirtioSerialAddrSetFree(virDomainVirtioSerialAddrSetPtr addrs);
+void virDomainCCWAddressSetFree(virDomainCCWAddressSetPtr addrs);
 
 typedef int (*virDomainDeviceInfoCallback)(virDomainDefPtr def,
                                            virDomainDeviceDefPtr dev,

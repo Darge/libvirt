@@ -176,12 +176,10 @@ qemuDomainAssignSpaprVIOAddresses(virDomainDefPtr def,
  */
 static int
 qemuDomainAssignS390Addresses(virDomainDefPtr def,
-                              virQEMUCapsPtr qemuCaps,
-                              virDomainObjPtr obj)
+                              virQEMUCapsPtr qemuCaps)
 {
     int ret = -1;
     virDomainCCWAddressSetPtr addrs = NULL;
-    qemuDomainObjPrivatePtr priv = NULL;
 
     if (qemuDomainMachineIsS390CCW(def) &&
         virQEMUCapsGet(qemuCaps, QEMU_CAPS_VIRTIO_CCW)) {
@@ -204,15 +202,11 @@ qemuDomainAssignS390Addresses(virDomainDefPtr def,
             def, VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_S390);
     }
 
-    if (obj && obj->privateData) {
-        priv = obj->privateData;
-        if (addrs) {
-            /* if this is the live domain object, we persist the CCW addresses*/
-            virDomainCCWAddressSetFree(priv->ccwaddrs);
-            priv->ccwaddrs = addrs;
-            addrs = NULL;
-        }
-    }
+    /* we persist the CCW addresses*/
+    virDomainCCWAddressSetFree(def->ccwaddrs);
+    def->ccwaddrs = addrs;
+    addrs = NULL;
+
     ret = 0;
 
  cleanup:
@@ -1147,7 +1141,7 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
     if (qemuDomainAssignSpaprVIOAddresses(def, qemuCaps) < 0)
         return -1;
 
-    if (qemuDomainAssignS390Addresses(def, qemuCaps, obj) < 0)
+    if (qemuDomainAssignS390Addresses(def, qemuCaps) < 0)
         return -1;
 
     qemuDomainAssignARMVirtioMMIOAddresses(def, qemuCaps);
@@ -1172,7 +1166,7 @@ qemuDomainReleaseDeviceAddress(virDomainObjPtr vm,
     if (info->type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW &&
         qemuDomainMachineIsS390CCW(vm->def) &&
         virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW) &&
-        virDomainCCWAddressReleaseAddr(priv->ccwaddrs, info) < 0)
+        virDomainCCWAddressReleaseAddr(vm->def->ccwaddrs, info) < 0)
         VIR_WARN("Unable to release CCW address on %s",
                  NULLSTR(devstr));
     else if (virDeviceInfoPCIAddressPresent(info) &&

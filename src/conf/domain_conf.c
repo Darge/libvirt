@@ -2535,6 +2535,15 @@ virDomainVirtioSerialAddrSetFree(virDomainVirtioSerialAddrSetPtr addrs)
     }
 }
 
+void virDomainCCWAddressSetFree(virDomainCCWAddressSetPtr addrs)
+{
+    if (!addrs)
+        return;
+
+    virHashFree(addrs->defined);
+    VIR_FREE(addrs);
+}
+
 void virDomainDefFree(virDomainDefPtr def)
 {
     size_t i;
@@ -2706,6 +2715,7 @@ void virDomainDefFree(virDomainDefPtr def)
     xmlFreeNode(def->metadata);
 
     virDomainVirtioSerialAddrSetFree(def->vioserialaddrs);
+    virDomainCCWAddressSetFree(def->ccwaddrs);
 
     VIR_FREE(def);
 }
