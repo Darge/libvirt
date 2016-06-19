@@ -220,4 +220,23 @@ virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
                                  virDomainDeviceInfoPtr info)
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
 
+int virDomainAssignVirtioSerialAddresses(virDomainDefPtr def);
+
+int virDomainAssignSpaprVIOAddress(virDomainDefPtr def,
+                                   virDomainDeviceInfoPtr info,
+                                   unsigned long long default_reg);
+
+void virDomainPrimeVirtioDeviceAddresses(virDomainDefPtr def,
+                                         virDomainDeviceAddressType type);
+
+virDomainPCIAddressSetPtr virDomainPCIAddressSetCreate(virDomainDefPtr def,
+                                                       unsigned int nbuses,
+                                                       bool dryRun);
+
+bool virDomainPCIBusFullyReserved(virDomainPCIAddressBusPtr bus);
+
+void virDomainPCIControllerSetDefaultModelName(virDomainControllerDefPtr cont);
+
+int virDomainAddressFindNewBusNr(virDomainDefPtr def);
+
 #endif /* __DOMAIN_ADDR_H__ */
