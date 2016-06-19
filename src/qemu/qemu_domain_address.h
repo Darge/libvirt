@@ -32,8 +32,7 @@ int qemuDomainSetSCSIControllerModel(const virDomainDef *def,
                                      int *model);
 
 int qemuDomainAssignAddresses(virDomainDefPtr def,
-                              virQEMUCapsPtr qemuCaps,
-                              virDomainObjPtr obj)
+                              virQEMUCapsPtr qemuCaps)
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
 
 void qemuDomainReleaseDeviceAddress(virDomainObjPtr vm,

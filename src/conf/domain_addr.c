@@ -550,17 +550,6 @@ virDomainPCIAddressSetAlloc(unsigned int nbuses)
 }
 
 
-void
-virDomainPCIAddressSetFree(virDomainPCIAddressSetPtr addrs)
-{
-    if (!addrs)
-        return;
-
-    VIR_FREE(addrs->buses);
-    VIR_FREE(addrs);
-}
-
-
 int
 virDomainPCIAddressGetNextSlot(virDomainPCIAddressSetPtr addrs,
                                virPCIDeviceAddressPtr next_addr,
@@ -1479,7 +1468,7 @@ virDomainCollectPCIAddress(virDomainDefPtr def ATTRIBUTE_UNUSED,
      * implicit USB controller on 0:0:1.2 (-usb)
      *
      * If the machine does have a PCI bus, they will get reserved
-     * in qemuDomainAssignDevicePCISlots().
+     * in *DomainAssignDevicePCISlots().
      */
 
     /* These are the IDE and USB controllers in the PIIX3, hardcoded

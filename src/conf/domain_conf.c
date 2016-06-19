@@ -2544,6 +2544,16 @@ void virDomainCCWAddressSetFree(virDomainCCWAddressSetPtr addrs)
     VIR_FREE(addrs);
 }
 
+void
+virDomainPCIAddressSetFree(virDomainPCIAddressSetPtr addrs)
+{
+    if (!addrs)
+        return;
+
+    VIR_FREE(addrs->buses);
+    VIR_FREE(addrs);
+}
+
 void virDomainDefFree(virDomainDefPtr def)
 {
     size_t i;
@@ -2716,6 +2726,7 @@ void virDomainDefFree(virDomainDefPtr def)
 
     virDomainVirtioSerialAddrSetFree(def->vioserialaddrs);
     virDomainCCWAddressSetFree(def->ccwaddrs);
+    virDomainPCIAddressSetFree(def->pciaddrs);
 
     VIR_FREE(def);
 }

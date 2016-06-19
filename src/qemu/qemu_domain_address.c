@@ -947,12 +947,10 @@ qemuDomainSupportsPCI(virDomainDefPtr def,
 
 static int
 qemuDomainAssignPCIAddresses(virDomainDefPtr def,
-                             virQEMUCapsPtr qemuCaps,
-                             virDomainObjPtr obj)
+                             virQEMUCapsPtr qemuCaps)
 {
     int ret = -1;
     virDomainPCIAddressSetPtr addrs = NULL;
-    qemuDomainObjPrivatePtr priv = NULL;
     int max_idx = -1;
     int nbuses = 0;
     size_t i;
@@ -1113,13 +1111,10 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
         }
     }
 
-    if (obj && obj->privateData) {
-        priv = obj->privateData;
-        /* if this is the live domain object, we persist the PCI addresses */
-        virDomainPCIAddressSetFree(priv->pciaddrs);
-        priv->pciaddrs = addrs;
-        addrs = NULL;
-    }
+    /* we persist the PCI addresses */
+    virDomainPCIAddressSetFree(def->pciaddrs);
+    def->pciaddrs = addrs;
+    addrs = NULL;
 
     ret = 0;
 
@@ -1132,8 +1127,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
 
 int
 qemuDomainAssignAddresses(virDomainDefPtr def,
-                          virQEMUCapsPtr qemuCaps,
-                          virDomainObjPtr obj)
+                          virQEMUCapsPtr qemuCaps)
 {
     if (virDomainAssignVirtioSerialAddresses(def) < 0)
         return -1;
@@ -1146,7 +1140,7 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
 
     qemuDomainAssignARMVirtioMMIOAddresses(def, qemuCaps);
 
-    if (qemuDomainAssignPCIAddresses(def, qemuCaps, obj) < 0)
+    if (qemuDomainAssignPCIAddresses(def, qemuCaps) < 0)
         return -1;
 
     return 0;
@@ -1170,7 +1164,7 @@ qemuDomainReleaseDeviceAddress(virDomainObjPtr vm,
         VIR_WARN("Unable to release CCW address on %s",
                  NULLSTR(devstr));
     else if (virDeviceInfoPCIAddressPresent(info) &&
-             virDomainPCIAddressReleaseSlot(priv->pciaddrs,
+             virDomainPCIAddressReleaseSlot(vm->def->pciaddrs,
                                             &info->addr.pci) < 0)
         VIR_WARN("Unable to release PCI address on %s",
                  NULLSTR(devstr));

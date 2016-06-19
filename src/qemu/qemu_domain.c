@@ -1247,7 +1247,6 @@ qemuDomainObjPrivateFree(void *data)
     virObjectUnref(priv->qemuCaps);
 
     virCgroupFree(&priv->cgroup);
-    virDomainPCIAddressSetFree(priv->pciaddrs);
     virDomainChrSourceDefFree(priv->monConfig);
     qemuDomainObjFreeJob(priv);
     VIR_FREE(priv->vcpupids);
@@ -2433,7 +2432,7 @@ qemuDomainDefAssignAddresses(virDomainDef *def,
                                             def->emulator)))
         goto cleanup;
 
-    if (qemuDomainAssignAddresses(def, qemuCaps, NULL) < 0)
+    if (qemuDomainAssignAddresses(def, qemuCaps) < 0)
         goto cleanup;
 
     ret = 0;
