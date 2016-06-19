@@ -2319,6 +2319,7 @@ struct _virDomainDef {
 
     virDomainVirtioSerialAddrSetPtr vioserialaddrs;
     virDomainCCWAddressSetPtr ccwaddrs;
+    virDomainPCIAddressSetPtr pciaddrs;
 
     /* Application-specific custom metadata */
     xmlNodePtr metadata;

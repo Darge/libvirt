@@ -187,8 +187,6 @@ struct _qemuDomainObjPrivate {
     int nvcpupids;
     int *vcpupids;
 
-    virDomainPCIAddressSetPtr pciaddrs;
-
     virQEMUCapsPtr qemuCaps;
     char *lockState;
 

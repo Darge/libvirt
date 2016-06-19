@@ -2726,6 +2726,7 @@ void virDomainDefFree(virDomainDefPtr def)
 
     virDomainVirtioSerialAddrSetFree(def->vioserialaddrs);
     virDomainCCWAddressSetFree(def->ccwaddrs);
+    virDomainPCIAddressSetFree(def->pciaddrs);
 
     VIR_FREE(def);
 }
