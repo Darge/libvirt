@@ -856,15 +856,6 @@ virDomainVirtioSerialAddrSetCreate(void)
     return ret;
 }
 
-static void
-virDomainVirtioSerialControllerFree(virDomainVirtioSerialControllerPtr cont)
-{
-    if (cont) {
-        virBitmapFree(cont->ports);
-        VIR_FREE(cont);
-    }
-}
-
 static ssize_t
 virDomainVirtioSerialAddrPlaceController(virDomainVirtioSerialAddrSetPtr addrs,
                                          virDomainVirtioSerialControllerPtr cont)
@@ -960,19 +951,6 @@ virDomainVirtioSerialAddrSetAddControllers(virDomainVirtioSerialAddrSetPtr addrs
     }
 
     return 0;
-}
-
-
-void
-virDomainVirtioSerialAddrSetFree(virDomainVirtioSerialAddrSetPtr addrs)
-{
-    size_t i;
-    if (addrs) {
-        for (i = 0; i < addrs->ncontrollers; i++)
-            virDomainVirtioSerialControllerFree(addrs->controllers[i]);
-        VIR_FREE(addrs->controllers);
-        VIR_FREE(addrs);
-    }
 }
 
 static int

@@ -185,29 +185,12 @@ int virDomainCCWAddressReleaseAddr(virDomainCCWAddressSetPtr addrs,
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
 virDomainCCWAddressSetPtr virDomainCCWAddressSetCreate(void);
 
-struct _virDomainVirtioSerialController {
-    unsigned int idx;
-    virBitmapPtr ports;
-};
-
-typedef struct _virDomainVirtioSerialController virDomainVirtioSerialController;
-typedef virDomainVirtioSerialController *virDomainVirtioSerialControllerPtr;
-
-struct _virDomainVirtioSerialAddrSet {
-    virDomainVirtioSerialControllerPtr *controllers;
-    size_t ncontrollers;
-};
-typedef struct _virDomainVirtioSerialAddrSet virDomainVirtioSerialAddrSet;
-typedef virDomainVirtioSerialAddrSet *virDomainVirtioSerialAddrSetPtr;
-
 virDomainVirtioSerialAddrSetPtr
 virDomainVirtioSerialAddrSetCreate(void);
 int
 virDomainVirtioSerialAddrSetAddControllers(virDomainVirtioSerialAddrSetPtr addrs,
                                            virDomainDefPtr def)
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
-void
-virDomainVirtioSerialAddrSetFree(virDomainVirtioSerialAddrSetPtr addrs);
 bool
 virDomainVirtioSerialAddrIsComplete(virDomainDeviceInfoPtr info);
 int

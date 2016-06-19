@@ -116,7 +116,6 @@ virDomainVirtioSerialAddrRelease;
 virDomainVirtioSerialAddrReserve;
 virDomainVirtioSerialAddrSetAddControllers;
 virDomainVirtioSerialAddrSetCreate;
-virDomainVirtioSerialAddrSetFree;
 
 
 # conf/domain_audit.h
@@ -479,6 +478,8 @@ virDomainVideoDefaultType;
 virDomainVideoDefFree;
 virDomainVideoTypeFromString;
 virDomainVideoTypeToString;
+virDomainVirtioSerialAddrSetFree;
+virDomainVirtioSerialControllerFree;
 virDomainVirtTypeFromString;
 virDomainVirtTypeToString;
 virDomainWatchdogActionTypeFromString;
