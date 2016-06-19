@@ -2270,6 +2270,8 @@ struct _virDomainDef {
 
     virDomainKeyWrapDefPtr keywrap;
 
+    virDomainVirtioSerialAddrSetPtr vioserialaddrs;
+
     /* Application-specific custom metadata */
     xmlNodePtr metadata;
 };

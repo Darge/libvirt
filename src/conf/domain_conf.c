@@ -2705,6 +2705,8 @@ void virDomainDefFree(virDomainDefPtr def)
 
     xmlFreeNode(def->metadata);
 
+    virDomainVirtioSerialAddrSetFree(def->vioserialaddrs);
+
     VIR_FREE(def);
 }
 
