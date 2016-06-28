@@ -20,7 +20,7 @@
       <readonly/>
       <shareable/>
       <alias name='scsi0-0-0-5'/>
-      <address type='drive' controller='0' bus='0' target='0' unit='5'/>
+      <address type='ccw' cssid='0x0' ssid='0x0' devno='0x0007'/>
     </disk>
     <disk type='block' device='disk'>
       <source dev='/dev/HostVG/QEMUGuest1'/>
