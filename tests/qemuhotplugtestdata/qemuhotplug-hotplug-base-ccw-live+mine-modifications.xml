@@ -23,11 +23,11 @@
       <driver name='qemu' type='raw' cache='none'/>
       <source file='/dev/null'/>
       <backingStore/>
-      <target dev='vde' bus='virtio'/>
+      <target dev='sdf' bus='scsi'/>
       <readonly/>
       <shareable/>
-      <alias name='virtio-disk4'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x0'/>
+      <alias name='scsi0-0-0-5'/>
+      <address type='drive' controller='0' bus='0' target='0' unit='5'/>
     </disk>
     <controller type='usb' index='0'>
       <alias name='usb'/>
