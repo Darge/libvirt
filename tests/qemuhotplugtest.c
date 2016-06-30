@@ -524,10 +524,10 @@ mymain(void)
                    "device_del", QMP_OK,
                    "chardev-remove", QMP_OK);
 
-    DO_TEST_ATTACH("hotplug-base-ccw-live", "mine-modifications", false, true,
+    DO_TEST_ATTACH("hotplug-base-ccw-live", "ccw-virtio", false, true,
                    "human-monitor-command", HMP("OK\\r\\n"),
                    "device_add", QMP_OK);
-    DO_TEST_DETACH("hotplug-base-ccw-live-with-mine-modifications", "mine-modifications", false, false,
+    DO_TEST_DETACH("hotplug-base-ccw-live-with-ccw-virtio", "ccw-virtio", false, false,
                    "device_del", QMP_OK,
                    "chardev-remove", QMP_OK);
 
