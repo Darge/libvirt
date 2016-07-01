@@ -418,6 +418,10 @@ mymain(void)
     "    }"                                                 \
     "}\r\n"
 
+        DO_TEST_ATTACH("hotplug-base-ccw-live-with-ccw-virtio", "ccw-virtio2-explicit-address", false, true,
+                   "human-monitor-command", HMP("OK\\r\\n"),
+                   "device_add", QMP_OK);
+
     DO_TEST_UPDATE("graphics-spice", "graphics-spice-nochange", false, false, NULL);
     DO_TEST_UPDATE("graphics-spice-timeout", "graphics-spice-timeout-nochange", false, false,
                    "set_password", QMP_OK, "expire_password", QMP_OK);
@@ -532,6 +536,10 @@ mymain(void)
                    "chardev-remove", QMP_OK);
 
     DO_TEST_ATTACH("hotplug-base-ccw-live-with-ccw-virtio", "ccw-virtio2", false, true,
+                   "human-monitor-command", HMP("OK\\r\\n"),
+                   "device_add", QMP_OK);
+
+    DO_TEST_ATTACH("hotplug-base-ccw-live-with-ccw-virtio", "ccw-virtio2-explicit-address", false, true,
                    "human-monitor-command", HMP("OK\\r\\n"),
                    "device_add", QMP_OK);
 
