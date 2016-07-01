@@ -1,6 +1,6 @@
 <disk type='file' device='disk'>
   <driver name='qemu' type='raw' cache='none'/>
-  <source file='/dev/random'/>
+  <source file='/dev/null'/>
   <target dev='vde2' bus='virtio'/>
   <readonly/>
   <shareable/>
