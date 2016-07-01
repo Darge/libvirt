@@ -525,7 +525,7 @@ mymain(void)
                    "device_del", QMP_OK,
                    "chardev-remove", QMP_OK);
 
-    /*DO_TEST_ATTACH("hotplug-base-ccw-live", "ccw-virtio", false, true,
+    DO_TEST_ATTACH("hotplug-base-ccw-live", "ccw-virtio", false, true,
                    "human-monitor-command", HMP("OK\\r\\n"),
                    "device_add", QMP_OK);
     DO_TEST_DETACH("hotplug-base-ccw-live", "ccw-virtio", false, false,
@@ -534,11 +534,19 @@ mymain(void)
 
     DO_TEST_ATTACH("hotplug-base-ccw-live-with-ccw-virtio", "ccw-virtio2", false, true,
                    "human-monitor-command", HMP("OK\\r\\n"),
-                   "device_add", QMP_OK);*/
+                   "device_add", QMP_OK);
+
+    DO_TEST_DETACH("hotplug-base-ccw-live-with-ccw-virtio", "ccw-virtio2", false, false,
+                   "device_del", QMP_OK,
+                   "chardev-remove", QMP_OK);
 
     DO_TEST_ATTACH("hotplug-base-ccw-live-with-ccw-virtio", "ccw-virtio2-explicit-address", false, true,
                    "human-monitor-command", HMP("OK\\r\\n"),
                    "device_add", QMP_OK);
+
+    DO_TEST_DETACH("hotplug-base-ccw-live-with-ccw-virtio", "ccw-virtio2-explicit-address", false, false,
+                   "device_del", QMP_OK,
+                   "chardev-remove", QMP_OK);
 
     qemuTestDriverFree(&driver);
     return (ret == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
