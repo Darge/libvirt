@@ -540,6 +540,7 @@ mymain(void)
                    "device_del", QMP_OK,
                    "chardev-remove", QMP_OK);
 
+    /* Attach and detach a ccw device with explicit address. */
     DO_TEST_ATTACH("hotplug-base-ccw-live-with-ccw-virtio", "ccw-virtio2-explicit-address", false, true,
                    "human-monitor-command", HMP("OK\\r\\n"),
                    "device_add", QMP_OK);
@@ -547,6 +548,20 @@ mymain(void)
     DO_TEST_DETACH("hotplug-base-ccw-live-with-ccw-virtio", "ccw-virtio2-explicit-address", false, false,
                    "device_del", QMP_OK,
                    "chardev-remove", QMP_OK);
+
+    /* Attach a second one, then detach the first one. Then attach the first one again. */
+    DO_TEST_ATTACH("hotplug-base-ccw-live-with-ccw-virtio", "ccw-virtio2-explicit-address", false, true,
+                   "human-monitor-command", HMP("OK\\r\\n"),
+                   "device_add", QMP_OK);
+
+    DO_TEST_DETACH("hotplug-base-ccw-live-with-ccw-virtio2", "ccw-virtio1-explicit-address", false, true,
+                   "device_del", QMP_OK,
+                   "chardev-remove", QMP_OK);
+
+    DO_TEST_ATTACH("hotplug-base-ccw-live-with-ccw-virtio2", "ccw-virtio1-explicit-address-reverse", false, true,
+                   "human-monitor-command", HMP("OK\\r\\n"),
+                   "device_add", QMP_OK);
+    /* todo: change the below to false or detach them */
 
     qemuTestDriverFree(&driver);
     return (ret == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
