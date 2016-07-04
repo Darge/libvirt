@@ -8187,66 +8187,6 @@ qemuDomainAttachDeviceFlags(virDomainPtr dom,
     if (dev == NULL)
         goto endjob;
 
-    // if (flags & VIR_DOMAIN_AFFECT_CONFIG &&
-    //     flags & VIR_DOMAIN_AFFECT_LIVE) {
-    //      If we are affecting both CONFIG and LIVE
-    //      * create a deep copy of device as adding
-    //      * to CONFIG takes one instance.
-         
-    //     dev_copy = virDomainDeviceDefCopy(dev, vm->def, caps, driver->xmlopt);
-    //     if (!dev_copy)
-    //         goto endjob;
-    // }
-
-
-    // if (flags & VIR_DOMAIN_AFFECT_CONFIG) {
-    //     /* Make a copy for updated domain. */
-    //     vmdef = virDomainObjCopyPersistentDef(vm, caps, driver->xmlopt);
-    //     if (!vmdef)
-    //         goto endjob;
-
-    //     if (virDomainDefCompatibleDevice(vmdef, dev,
-    //                                      VIR_DOMAIN_DEVICE_ACTION_ATTACH) < 0)
-    //         goto endjob;
-
-    //     if ((ret = qemuDomainAttachDeviceConfig(vmdef, dev, dom->conn, caps,
-    //                                             parse_flags,
-    //                                             driver->xmlopt)) < 0)
-    //         goto endjob;
-    // }
-
-    // if (flags & VIR_DOMAIN_AFFECT_LIVE) {
-    //     if (virDomainDefCompatibleDevice(vm->def, dev_copy,
-    //                                      VIR_DOMAIN_DEVICE_ACTION_ATTACH) < 0)
-    //         goto endjob;
-
-    //     if ((ret = qemuDomainAttachDeviceLive(vm, dev_copy, dom->conn)) < 0)
-    //         goto endjob;
-    //     /*
-    //      * update domain status forcibly because the domain status may be
-    //      * changed even if we failed to attach the device. For example,
-    //      * a new controller may be created.
-    //      */
-    //     if (virDomainSaveStatus(driver->xmlopt, cfg->stateDir, vm, driver->caps) < 0) {
-    //         ret = -1;
-    //         goto endjob;
-    //     }
-    // }
-
-    // if (flags & VIR_DOMAIN_AFFECT_LIVE &&
-    //     virDomainSaveStatus(driver->xmlopt, cfg->stateDir, vm, driver->caps) < 0) {
-    //     ret = -1;
-    //     goto endjob;
-    // }
-
-    // /* Finally, if no error until here, we can save config. */
-    // if (flags & VIR_DOMAIN_AFFECT_CONFIG) {
-    //     ret = virDomainSaveConfig(cfg->configDir, driver->caps, vmdef);
-    //     if (!ret) {
-    //         virDomainObjAssignDef(vm, vmdef, false, NULL);
-    //         vmdef = NULL;
-    //     }
-    // }
     qemuDomainAttachDeviceLiveAndConfig(dom->conn, vm, dev, caps, driver, parse_flags, flags);
 
 
