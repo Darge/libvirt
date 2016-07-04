@@ -7332,9 +7332,9 @@ qemuDomainUndefine(virDomainPtr dom)
 static int
 qemuDomainAttachDeviceLive(virDomainObjPtr vm,
                            virDomainDeviceDefPtr dev,
-                           virConnectPtr conn)
+                           virConnectPtr conn,
+                           virQEMUDriverPtr driver)
 {
-    virQEMUDriverPtr driver = conn->privateData;
     int ret = -1;
     const char *alias = NULL;
 
@@ -8112,7 +8112,6 @@ qemuDomainAttachDeviceLiveAndConfig(virConnectPtr conn,
         if (virDomainDefCompatibleDevice(vmdef, dev,
                                          VIR_DOMAIN_DEVICE_ACTION_ATTACH) < 0)
             goto cleanup;
-
         if ((ret = qemuDomainAttachDeviceConfig(vmdef, dev, conn, caps,
                                                 parse_flags,
                                                 driver->xmlopt)) < 0)
@@ -8124,7 +8123,7 @@ qemuDomainAttachDeviceLiveAndConfig(virConnectPtr conn,
                                          VIR_DOMAIN_DEVICE_ACTION_ATTACH) < 0)
             goto cleanup;
 
-        if ((ret = qemuDomainAttachDeviceLive(vm, dev_copy, conn)) < 0)
+        if ((ret = qemuDomainAttachDeviceLive(vm, dev_copy, conn, driver)) < 0)
             goto cleanup;
         /*
          * update domain status forcibly because the domain status may be
