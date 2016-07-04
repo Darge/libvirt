@@ -30,6 +30,7 @@
 #include "virstring.h"
 #include "virthread.h"
 #include "virfile.h"
+#include "qemu/qemu_driver.h"
 
 #define VIR_FROM_THIS VIR_FROM_NONE
 
@@ -291,7 +292,11 @@ testQemuHotplug(const void *data)
 
     switch (test->action) {
     case ATTACH:
-        ret = testQemuHotplugAttach(vm, dev);
+        if (ATTACH == -3)
+            ret = testQemuHotplugAttach(vm, dev);
+
+        ret = qemuDomainAttachDeviceLiveAndConfig(NULL, vm, device_xml, &driver, VIR_DOMAIN_AFFECT_LIVE);
+
         if (ret == 0) {
             /* vm->def stolen dev->data.* so we just need to free the dev
              * envelope */
@@ -417,35 +422,35 @@ mymain(void)
     "    }"                                                 \
     "}\r\n"
 
-    // DO_TEST_UPDATE("graphics-spice", "graphics-spice-nochange", false, false, NULL);
-    // DO_TEST_UPDATE("graphics-spice-timeout", "graphics-spice-timeout-nochange", false, false,
-    //                "set_password", QMP_OK, "expire_password", QMP_OK);
-    // DO_TEST_UPDATE("graphics-spice-timeout", "graphics-spice-timeout-password", false, false,
-    //                "set_password", QMP_OK, "expire_password", QMP_OK);
-    // DO_TEST_UPDATE("graphics-spice", "graphics-spice-listen", true, false, NULL);
-    // DO_TEST_UPDATE("graphics-spice-listen-network", "graphics-spice-listen-network", false, false,
-    //                "set_password", QMP_OK, "expire_password", QMP_OK);
-    // /* Strange huh? Currently, only graphics can be updated :-P */
-    // DO_TEST_UPDATE("disk-cdrom", "disk-cdrom-nochange", true, false, NULL);
+    DO_TEST_UPDATE("graphics-spice", "graphics-spice-nochange", false, false, NULL);
+    DO_TEST_UPDATE("graphics-spice-timeout", "graphics-spice-timeout-nochange", false, false,
+                   "set_password", QMP_OK, "expire_password", QMP_OK);
+    DO_TEST_UPDATE("graphics-spice-timeout", "graphics-spice-timeout-password", false, false,
+                   "set_password", QMP_OK, "expire_password", QMP_OK);
+    DO_TEST_UPDATE("graphics-spice", "graphics-spice-listen", true, false, NULL);
+    DO_TEST_UPDATE("graphics-spice-listen-network", "graphics-spice-listen-network", false, false,
+                   "set_password", QMP_OK, "expire_password", QMP_OK);
+    /* Strange huh? Currently, only graphics can be updated :-P */
+    DO_TEST_UPDATE("disk-cdrom", "disk-cdrom-nochange", true, false, NULL);
 
-    // DO_TEST_ATTACH("console-compat-2-live", "console-virtio", false, true,
-    //                "chardev-add", "{\"return\": {\"pty\": \"/dev/pts/26\"}}",
-    //                "device_add", QMP_OK);
+    DO_TEST_ATTACH("console-compat-2-live", "console-virtio", false, true,
+                   "chardev-add", "{\"return\": {\"pty\": \"/dev/pts/26\"}}",
+                   "device_add", QMP_OK);
 
-    // DO_TEST_DETACH("console-compat-2-live", "console-virtio", false, false,
-    //                "device_del", QMP_OK,
-    //                "chardev-remove", QMP_OK);
+    DO_TEST_DETACH("console-compat-2-live", "console-virtio", false, false,
+                   "device_del", QMP_OK,
+                   "chardev-remove", QMP_OK);
 
-    // DO_TEST_ATTACH("hotplug-base-live", "disk-virtio", false, true,
-    //                "human-monitor-command", HMP("OK\\r\\n"),
-    //                "device_add", QMP_OK);
-    // DO_TEST_DETACH("hotplug-base-live", "disk-virtio", false, false,
-    //                "device_del", QMP_OK,
-    //                "human-monitor-command", HMP(""));
+    DO_TEST_ATTACH("hotplug-base-live", "disk-virtio", false, true,
+                   "human-monitor-command", HMP("OK\\r\\n"),
+                   "device_add", QMP_OK);
+    DO_TEST_DETACH("hotplug-base-live", "disk-virtio", false, false,
+                   "device_del", QMP_OK,
+                   "human-monitor-command", HMP(""));
 
-    // DO_TEST_ATTACH_EVENT("hotplug-base-live", "disk-virtio", false, true,
-    //                      "human-monitor-command", HMP("OK\\r\\n"),
-    //                      "device_add", QMP_OK);
+    DO_TEST_ATTACH_EVENT("hotplug-base-live", "disk-virtio", false, true,
+                         "human-monitor-command", HMP("OK\\r\\n"),
+                         "device_add", QMP_OK);
     // DO_TEST_DETACH("hotplug-base-live", "disk-virtio", true, true,
     //                "device_del", QMP_OK,
     //                "human-monitor-command", HMP(""));
@@ -516,9 +521,9 @@ mymain(void)
     //                "device_del", QMP_DEVICE_DELETED("scsi3-0-5-7") QMP_OK,
     //                "human-monitor-command", HMP(""));
 
-    DO_TEST_ATTACH("hotplug-base-live", "qemu-agent", false, true,
-                   "chardev-add", QMP_OK,
-                   "device_add", QMP_OK);
+    // DO_TEST_ATTACH("hotplug-base-live", "qemu-agent", false, true,
+    //                "chardev-add", QMP_OK,
+    //                "device_add", QMP_OK);
     // DO_TEST_DETACH("hotplug-base-live", "qemu-agent-detach", false, false,
     //                "device_del", QMP_OK,
     //                "chardev-remove", QMP_OK);
