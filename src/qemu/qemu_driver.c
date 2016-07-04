@@ -8065,7 +8065,7 @@ qemuDomainUpdateDeviceConfig(virDomainDefPtr vmdef,
     return 0;
 }
 
-static int
+int
 qemuDomainAttachDeviceLiveAndConfig(virConnectPtr conn,
                                     virDomainObjPtr vm,
                                     const char *xml,
@@ -8150,10 +8150,11 @@ qemuDomainAttachDeviceLiveAndConfig(virConnectPtr conn,
 
 cleanup:
     virDomainDefFree(vmdef);
-    if (dev != dev_copy)
-        virDomainDeviceDefFree(dev_copy);
+    virDomainDeviceDefFree(dev);
     virObjectUnref(cfg);
     virObjectUnref(caps);
+    if (dev != dev_copy)
+        virDomainDeviceDefFree(dev_copy);
 
     return ret;
 }
@@ -8166,7 +8167,6 @@ qemuDomainAttachDeviceFlags(virDomainPtr dom,
 {
     virQEMUDriverPtr driver = dom->conn->privateData;
     virDomainObjPtr vm = NULL;
-    virDomainDeviceDefPtr dev = NULL;
     int ret = -1;
 
     virCheckFlags(VIR_DOMAIN_AFFECT_LIVE |
@@ -8194,7 +8194,6 @@ qemuDomainAttachDeviceFlags(virDomainPtr dom,
     qemuDomainObjEndJob(driver, vm);
 
  cleanup:
-    virDomainDeviceDefFree(dev);
     virDomainObjEndAPI(&vm);
     virNWFilterUnlockFilterUpdates();
     return ret;
