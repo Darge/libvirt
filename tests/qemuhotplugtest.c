@@ -232,12 +232,21 @@ testQemuHotplug(const void *data)
     if (virAsprintf(&domain_filename, "%s/qemuxml2argvdata/qemuxml2argv-%s.xml",
                     abs_srcdir, test->domain_filename) < 0 ||
         virAsprintf(&device_filename, "%s/qemuhotplugtestdata/qemuhotplug-%s.xml",
-                    abs_srcdir, test->device_filename) < 0 ||
-        virAsprintf(&result_filename,
+                    abs_srcdir, test->device_filename) < 0)
+        goto cleanup;
+
+    if (!(target & VIR_DOMAIN_AFFECT_CONFIG) && virAsprintf(&result_filename,
                     "%s/qemuhotplugtestdata/qemuhotplug-%s+%s.xml",
                     abs_srcdir, test->domain_filename,
                     test->device_filename) < 0)
         goto cleanup;
+
+    if ((target & VIR_DOMAIN_AFFECT_CONFIG) && virAsprintf(&result_filename,
+                    "%s/qemuhotplugtestdata/qemuhotplug-%s+%s+live.xml",
+                    abs_srcdir, test->domain_filename,
+                    test->device_filename) < 0)
+        goto cleanup;
+
 
     if (virTestLoadFile(domain_filename, &domain_xml) < 0 ||
         virTestLoadFile(device_filename, &device_xml) < 0)
@@ -542,6 +551,8 @@ mymain(void)
     DO_TEST_DETACH("hotplug-base-live", "qemu-agent-detach", false, false, VIR_DOMAIN_AFFECT_LIVE,
                    "device_del", QMP_OK,
                    "chardev-remove", QMP_OK);
+
+
 
     DO_TEST_ATTACH("hotplug-base-live", "qemu-agent", false, true, VIR_DOMAIN_AFFECT_CONFIG,
                    "chardev-add", QMP_OK,
