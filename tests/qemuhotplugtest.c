@@ -242,7 +242,7 @@ testQemuHotplug(const void *data)
         goto cleanup;
 
     if ((target & VIR_DOMAIN_AFFECT_CONFIG) && virAsprintf(&result_filename,
-                    "%s/qemuhotplugtestdata/qemuhotplug-%s+%s+live.xml",
+                    "%s/qemuhotplugtestdata/qemuhotplug-%s+%s+config.xml",
                     abs_srcdir, test->domain_filename,
                     test->device_filename) < 0)
         goto cleanup;
