@@ -249,8 +249,8 @@ testQemuHotplug(const void *data)
     char *device_xml = NULL;
     char *result_xml = NULL;
 
-    //char *config_filename = NULL;
-    //char *config_xml = NULL;
+    char *config_filename = NULL;
+    char *config_xml = NULL;
     virQEMUDriverConfigPtr cfg = NULL;
 
     const char *const *tmp;
@@ -279,11 +279,12 @@ testQemuHotplug(const void *data)
         goto cleanup;
 
     cfg = virQEMUDriverGetConfig(&driver);
-    //config_filename =
-    virDomainConfigFile(cfg->configDir, vm->def->name);
+    //config_filename = virDomainConfigFile(cfg->configDir, vm->def->name);
+    if (virAsprintf(&config_filename, "%s/hotplug.xml", cfg->configDir) < 0)
+        goto cleanup;
 
-    //if (virTestLoadFile(config_filename, &config_xml) < 0)
-    //    goto cleanup;
+    if (virTestLoadFile(config_filename, &config_xml) < 0)
+        goto cleanup;
 
     if (test->action != UPDATE &&
         virTestLoadFile(result_filename, &result_xml) < 0)
