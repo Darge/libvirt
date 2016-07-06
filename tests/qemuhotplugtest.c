@@ -476,9 +476,14 @@ mymain(void)
                          "human-monitor-command", HMP("OK\\r\\n"),
                          "device_add", QMP_OK,
                          "qom-list", QOM_OK);
+
+
     DO_TEST_DETACH("hotplug-base-live", "disk-virtio", true, true, VIR_DOMAIN_AFFECT_LIVE,
                    "device_del", QMP_OK,
+                   "qom-list", QOM_OK,
                    "human-monitor-command", HMP(""));
+
+
     DO_TEST_DETACH("hotplug-base-live", "disk-virtio", false, false, VIR_DOMAIN_AFFECT_LIVE,
                    "device_del", QMP_DEVICE_DELETED("virtio-disk4") QMP_OK,
                    "human-monitor-command", HMP(""));
