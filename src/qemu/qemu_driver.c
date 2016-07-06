@@ -8327,7 +8327,7 @@ static int qemuDomainUpdateDeviceFlags(virDomainPtr dom,
     return ret;
 }
 
-static int
+int
 qemuDomainDetachDeviceliveAndConfig(virDomainPtr dom,
                                     virQEMUDriverPtr driver,
                                     virDomainObjPtr vm,

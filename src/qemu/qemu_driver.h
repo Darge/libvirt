@@ -107,10 +107,17 @@
  #include "network/bridge_driver.h"
 
 int qemuRegister(void);
+/* TODO: non-NULL? */
 int qemuDomainAttachDeviceLiveAndConfig(virConnectPtr conn,
-                                    virDomainObjPtr vm,
-                                    const char *xml,
-                                    virQEMUDriverPtr driver,
-                                    unsigned int flags);
+                                        virDomainObjPtr vm,
+                                       const char *xml,
+                                       virQEMUDriverPtr driver,
+                                       unsigned int flags);
+
+int qemuDomainDetachDeviceliveAndConfig(virDomainPtr dom,
+                                        virQEMUDriverPtr driver,
+                                        virDomainObjPtr vm,
+                                        const char *xml,
+                                        unsigned int flags);
 
 #endif /* __QEMU_DRIVER_H__ */
