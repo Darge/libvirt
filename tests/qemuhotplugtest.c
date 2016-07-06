@@ -207,20 +207,19 @@ testQemuHotplugCheckResult(virDomainObjPtr vm,
 }
 
 static int
-testQemuHotplugCheckResultConfig(
+testQemuHotplugCheckResultConfig(virDomainObjPtr vm,
                            const char *expected,
                            const char *expectedFile,
-                           char* actual,
                            bool fail)
 {
-    //char *actual;
+    char *actual;
     int ret;
 
-    //actual = virDomainDefFormat(vm->def, driver.caps,
-    //                            VIR_DOMAIN_DEF_FORMAT_SECURE);
+    actual = virDomainDefFormat(vm->newDef, driver.caps,
+                                VIR_DOMAIN_DEF_FORMAT_SECURE);
     if (!actual)
         return -1;
-    //vm->def->id = QEMU_HOTPLUG_TEST_DOMAIN_ID;
+    vm->def->id = QEMU_HOTPLUG_TEST_DOMAIN_ID;
 
     if (STREQ(expected, actual)) {
         if (fail)
@@ -234,7 +233,7 @@ testQemuHotplugCheckResultConfig(
         ret = -1;
     }
 
-    //VIR_FREE(actual);
+    VIR_FREE(actual);
     return ret;
 }
 
@@ -249,10 +248,6 @@ testQemuHotplug(const void *data)
     char *domain_xml = NULL;
     char *device_xml = NULL;
     char *result_xml = NULL;
-
-    char *config_filename = NULL;
-    char *config_xml = NULL;
-    virQEMUDriverConfigPtr cfg = NULL;
 
     const char *const *tmp;
     bool fail = test->fail;
@@ -295,18 +290,6 @@ testQemuHotplug(const void *data)
                                      test->domain_filename) < 0)
             goto cleanup;
     }
-
-    /* TODO: Move it somewhere else. */
-    if (target & VIR_DOMAIN_AFFECT_CONFIG) {
-        cfg = virQEMUDriverGetConfig(&driver);
-        if ((config_filename = virDomainConfigFile(cfg->configDir, vm->def->name)) == NULL)
-            goto cleanup;
-
-        if (virTestLoadFile(config_filename, &config_xml) < 0)
-            goto cleanup;
-    }
-
-
 
     if (test->action == ATTACH)
         device_parse_flags = VIR_DOMAIN_DEF_PARSE_INACTIVE;
@@ -359,8 +342,8 @@ testQemuHotplug(const void *data)
                 ret = testQemuHotplugCheckResult(vm, result_xml,
                                                  result_filename, fail);
             else
-                ret = testQemuHotplugCheckResultConfig(result_xml,
-                                                 result_filename, config_xml, fail);
+                ret = testQemuHotplugCheckResultConfig(vm, result_xml,
+                                                 result_filename, fail);
         }
         break;
 
@@ -382,8 +365,6 @@ testQemuHotplug(const void *data)
     VIR_FREE(domain_xml);
     VIR_FREE(device_xml);
     VIR_FREE(result_xml);
-    VIR_FREE(config_filename);
-    VIR_FREE(config_xml);
     /* don't dispose test monitor with VM */
     if (priv)
         priv->mon = NULL;
