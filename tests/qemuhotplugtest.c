@@ -207,6 +207,37 @@ testQemuHotplugCheckResult(virDomainObjPtr vm,
 }
 
 static int
+testQemuHotplugCheckResultConfig(virDomainObjPtr vm,
+                           const char *expected,
+                           const char *expectedFile,
+                           bool fail)
+{
+    char *actual;
+    int ret;
+
+    actual = virDomainDefFormat(vm->def, driver.caps,
+                                VIR_DOMAIN_DEF_FORMAT_SECURE);
+    if (!actual)
+        return -1;
+    vm->def->id = QEMU_HOTPLUG_TEST_DOMAIN_ID;
+
+    if (STREQ(expected, actual)) {
+        if (fail)
+            VIR_TEST_VERBOSE("domain XML should not match the expected result\n");
+        ret = 0;
+    } else {
+        if (!fail)
+            virTestDifferenceFull(stderr,
+                                  expected, expectedFile,
+                                  actual, NULL);
+        ret = -1;
+    }
+
+    VIR_FREE(actual);
+    return ret;
+}
+
+static int
 testQemuHotplug(const void *data)
 {
     int ret = -1;
@@ -304,9 +335,14 @@ testQemuHotplug(const void *data)
              * envelope */
             VIR_FREE(dev);
         }
-        if (ret == 0 || fail)
-            ret = testQemuHotplugCheckResult(vm, result_xml,
-                                             result_filename, fail);
+        if (ret == 0 || fail) {
+            if (target & VIR_DOMAIN_AFFECT_LIVE)
+                ret = testQemuHotplugCheckResult(vm, result_xml,
+                                                 result_filename, fail);
+            else
+                ret = testQemuHotplugCheckResultConfig(vm, result_xml,
+                                                 result_filename, fail);
+        }
         break;
 
     case DETACH:
