@@ -176,7 +176,7 @@ testQemuHotplugUpdate(virDomainObjPtr vm,
 }
 
 static int
-testQemuHotplugCheckResult(virDomainObjPtr vm,
+testQemuHotplugCheckResult(virDomainDefPtr def,
                            const char *expected,
                            const char *expectedFile,
                            bool fail)
@@ -184,42 +184,11 @@ testQemuHotplugCheckResult(virDomainObjPtr vm,
     char *actual;
     int ret;
 
-    actual = virDomainDefFormat(vm->def, driver.caps,
+    actual = virDomainDefFormat(def, driver.caps,
                                 VIR_DOMAIN_DEF_FORMAT_SECURE);
     if (!actual)
         return -1;
-    vm->def->id = QEMU_HOTPLUG_TEST_DOMAIN_ID;
-
-    if (STREQ(expected, actual)) {
-        if (fail)
-            VIR_TEST_VERBOSE("domain XML should not match the expected result\n");
-        ret = 0;
-    } else {
-        if (!fail)
-            virTestDifferenceFull(stderr,
-                                  expected, expectedFile,
-                                  actual, NULL);
-        ret = -1;
-    }
-
-    VIR_FREE(actual);
-    return ret;
-}
-
-static int
-testQemuHotplugCheckResultConfig(virDomainObjPtr vm,
-                           const char *expected,
-                           const char *expectedFile,
-                           bool fail)
-{
-    char *actual;
-    int ret;
-
-    actual = virDomainDefFormat(vm->newDef, driver.caps,
-                                VIR_DOMAIN_DEF_FORMAT_SECURE);
-    if (!actual)
-        return -1;
-    vm->def->id = QEMU_HOTPLUG_TEST_DOMAIN_ID;
+    def->id = QEMU_HOTPLUG_TEST_DOMAIN_ID;
 
     if (STREQ(expected, actual)) {
         if (fail)
@@ -339,10 +308,10 @@ testQemuHotplug(const void *data)
         }
         if (ret == 0 || fail) {
             if (target & VIR_DOMAIN_AFFECT_LIVE)
-                ret = testQemuHotplugCheckResult(vm, result_xml,
+                ret = testQemuHotplugCheckResult(vm->def, result_xml,
                                                  result_filename, fail);
-            else
-                ret = testQemuHotplugCheckResultConfig(vm, result_xml,
+            else if (target & VIR_DOMAIN_AFFECT_CONFIG)
+                ret = testQemuHotplugCheckResult(vm->newDef, result_xml,
                                                  result_filename, fail);
         }
         break;
@@ -350,7 +319,7 @@ testQemuHotplug(const void *data)
     case DETACH:
         ret = testQemuHotplugDetach(vm, dev);
         if (ret == 0 || fail)
-            ret = testQemuHotplugCheckResult(vm, domain_xml,
+            ret = testQemuHotplugCheckResult(vm->def, domain_xml,
                                              domain_filename, fail);
         break;
 
