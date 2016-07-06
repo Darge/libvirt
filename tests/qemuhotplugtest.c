@@ -326,7 +326,11 @@ testQemuHotplug(const void *data)
         break;
 
     case DETACH:
-        ret = testQemuHotplugDetach(vm, dev);
+        if (DETACH == -3)
+            ret = testQemuHotplugDetach(vm, dev);
+
+        ret = qemuDomainDetachDeviceLiveAndConfig(&driver, vm, device_xml, target);
+
         if (ret == 0 || fail)
             ret = testQemuHotplugCheckResult(vm->def, domain_xml,
                                              domain_filename, fail);
