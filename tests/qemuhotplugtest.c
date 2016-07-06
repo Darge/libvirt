@@ -452,90 +452,210 @@ mymain(void)
     "    }"                                                 \
     "}\r\n"
 
-    DO_TEST_UPDATE("graphics-spice", "graphics-spice-nochange", false, false, VIR_DOMAIN_AFFECT_LIVE, NULL);
-    DO_TEST_UPDATE("graphics-spice-timeout", "graphics-spice-timeout-nochange", false, false, VIR_DOMAIN_AFFECT_LIVE,
-                   "set_password", QMP_OK, "expire_password", QMP_OK);
-    DO_TEST_UPDATE("graphics-spice-timeout", "graphics-spice-timeout-password", false, false, VIR_DOMAIN_AFFECT_LIVE,
-                   "set_password", QMP_OK, "expire_password", QMP_OK);
-    DO_TEST_UPDATE("graphics-spice", "graphics-spice-listen", true, false, VIR_DOMAIN_AFFECT_LIVE, NULL);
-    DO_TEST_UPDATE("graphics-spice-listen-network", "graphics-spice-listen-network", false, false, VIR_DOMAIN_AFFECT_LIVE,
-                   "set_password", QMP_OK, "expire_password", QMP_OK);
-    /* Strange huh? Currently, only graphics can be updated :-P */
-    DO_TEST_UPDATE("disk-cdrom", "disk-cdrom-nochange", true, false, VIR_DOMAIN_AFFECT_LIVE, NULL);
+    // DO_TEST_UPDATE("graphics-spice", "graphics-spice-nochange", false, false, VIR_DOMAIN_AFFECT_LIVE, NULL);
+    // DO_TEST_UPDATE("graphics-spice-timeout", "graphics-spice-timeout-nochange", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    //                "set_password", QMP_OK, "expire_password", QMP_OK);
+    // DO_TEST_UPDATE("graphics-spice-timeout", "graphics-spice-timeout-password", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    //                "set_password", QMP_OK, "expire_password", QMP_OK);
+    // DO_TEST_UPDATE("graphics-spice", "graphics-spice-listen", true, false, VIR_DOMAIN_AFFECT_LIVE, NULL);
+    // DO_TEST_UPDATE("graphics-spice-listen-network", "graphics-spice-listen-network", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    //                "set_password", QMP_OK, "expire_password", QMP_OK);
+    // /* Strange huh? Currently, only graphics can be updated :-P */
+    // DO_TEST_UPDATE("disk-cdrom", "disk-cdrom-nochange", true, false, VIR_DOMAIN_AFFECT_LIVE, NULL);
 
-    DO_TEST_ATTACH("console-compat-2-live", "console-virtio", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    // DO_TEST_ATTACH("console-compat-2-live", "console-virtio", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    //                "chardev-add", "{\"return\": {\"pty\": \"/dev/pts/26\"}}",
+    //                "device_add", QMP_OK);
+
+    // DO_TEST_DETACH("console-compat-2-live", "console-virtio", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    //                "device_del", QMP_OK,
+    //                "chardev-remove", QMP_OK);
+
+    // DO_TEST_ATTACH("hotplug-base-live", "disk-virtio", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    //                "human-monitor-command", HMP("OK\\r\\n"),
+    //                "device_add", QMP_OK);
+    // DO_TEST_DETACH("hotplug-base-live", "disk-virtio", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    //                "device_del", QMP_OK,
+    //                "human-monitor-command", HMP(""));
+
+    // DO_TEST_ATTACH_EVENT("hotplug-base-live", "disk-virtio", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    //                      "human-monitor-command", HMP("OK\\r\\n"),
+    //                      "device_add", QMP_OK,
+    //                      "qom-list", QOM_OK);
+
+
+    // DO_TEST_DETACH("hotplug-base-live", "disk-virtio", true, true, VIR_DOMAIN_AFFECT_LIVE,
+    //                "device_del", QMP_OK,
+    //                "qom-list", QOM_OK,
+    //                "human-monitor-command", HMP(""));
+
+
+    // DO_TEST_DETACH("hotplug-base-live", "disk-virtio", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    //                "device_del", QMP_DEVICE_DELETED("virtio-disk4") QMP_OK,
+    //                "human-monitor-command", HMP(""),
+    //                "qom-list", QOM_OK);
+
+    // DO_TEST_ATTACH("hotplug-base-live", "disk-usb", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    //                "human-monitor-command", HMP("OK\\r\\n"),
+    //                "device_add", QMP_OK);
+    // DO_TEST_DETACH("hotplug-base-live", "disk-usb", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    //                "device_del", QMP_OK,
+    //                "human-monitor-command", HMP(""));
+
+    // DO_TEST_ATTACH_EVENT("hotplug-base-live", "disk-usb", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    //                      "human-monitor-command", HMP("OK\\r\\n"),
+    //                      "device_add", QMP_OK,
+    //                      "qom-list", QOM_OK);
+    // DO_TEST_DETACH("hotplug-base-live", "disk-usb", true, true, VIR_DOMAIN_AFFECT_LIVE,
+    //                "device_del", QMP_OK,
+    //                "qom-list", QOM_OK,
+    //                "human-monitor-command", HMP(""));
+    // DO_TEST_DETACH("hotplug-base-live", "disk-usb", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    //                "device_del", QMP_DEVICE_DELETED("usb-disk16") QMP_OK,
+    //                "human-monitor-command", HMP(""),
+    //                "qom-list", QOM_OK);
+
+    // DO_TEST_ATTACH("hotplug-base-live", "disk-scsi", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    //                "human-monitor-command", HMP("OK\\r\\n"),
+    //                "device_add", QMP_OK);
+    // DO_TEST_DETACH("hotplug-base-live", "disk-scsi", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    //                "device_del", QMP_OK,
+    //                "human-monitor-command", HMP(""));
+
+    // DO_TEST_ATTACH_EVENT("hotplug-base-live", "disk-scsi", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    //                      "human-monitor-command", HMP("OK\\r\\n"),
+    //                      "device_add", QMP_OK,
+    //                      "qom-list", QOM_OK);
+    // DO_TEST_DETACH("hotplug-base-live", "disk-scsi", true, true, VIR_DOMAIN_AFFECT_LIVE,
+    //                "device_del", QMP_OK,
+    //                "qom-list", QOM_OK,
+    //                "human-monitor-command", HMP(""));
+    // DO_TEST_DETACH("hotplug-base-live", "disk-scsi", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    //                "device_del", QMP_DEVICE_DELETED("scsi0-0-0-5") QMP_OK,
+    //                "human-monitor-command", HMP(""),
+    //                "qom-list", QOM_OK);
+
+    // DO_TEST_ATTACH("hotplug-base-without-scsi-controller-live", "disk-scsi-2", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    //                /* Four controllers added */
+    //                "device_add", QMP_OK,
+    //                "device_add", QMP_OK,
+    //                "device_add", QMP_OK,
+    //                "device_add", QMP_OK,
+    //                "human-monitor-command", HMP("OK\\r\\n"),
+    //                /* Disk added */
+    //                "device_add", QMP_OK);
+    // DO_TEST_DETACH("hotplug-base-with-scsi-controller-live", "disk-scsi-2", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    //                "device_del", QMP_OK,
+    //                "human-monitor-command", HMP(""));
+
+    // DO_TEST_ATTACH_EVENT("hotplug-base-without-scsi-controller-live", "disk-scsi-2", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    //                      /* Four controllers added */
+    //                      "device_add", QMP_OK,
+    //                      "device_add", QMP_OK,
+    //                      "device_add", QMP_OK,
+    //                      "device_add", QMP_OK,
+    //                      "human-monitor-command", HMP("OK\\r\\n"),
+    //                      /* Disk added */
+    //                      "device_add", QMP_OK,
+    //                      "qom-list", QOM_OK);
+    // DO_TEST_DETACH("hotplug-base-with-scsi-controller-live", "disk-scsi-2", true, true, VIR_DOMAIN_AFFECT_LIVE,
+    //                "device_del", QMP_OK,
+    //                "qom-list", QOM_OK,
+    //                "human-monitor-command", HMP(""));
+    // DO_TEST_DETACH("hotplug-base-with-scsi-controller-live", "disk-scsi-2", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    //                "device_del", QMP_DEVICE_DELETED("scsi3-0-5-7") QMP_OK,
+    //                "human-monitor-command", HMP(""),
+    //                "qom-list", QOM_OK);
+
+    // DO_TEST_ATTACH("hotplug-base-live", "qemu-agent", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    //                "chardev-add", QMP_OK,
+    //                "device_add", QMP_OK);
+    // DO_TEST_DETACH("hotplug-base-live", "qemu-agent-detach", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    //                "device_del", QMP_OK,
+    //                "chardev-remove", QMP_OK);
+
+
+
+
+
+
+
+
+
+
+    DO_TEST_ATTACH("console-compat-2-live", "console-virtio", false, true, VIR_DOMAIN_AFFECT_CONFIG,
                    "chardev-add", "{\"return\": {\"pty\": \"/dev/pts/26\"}}",
                    "device_add", QMP_OK);
 
-    DO_TEST_DETACH("console-compat-2-live", "console-virtio", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_DETACH("console-compat-2-live", "console-virtio", false, false, VIR_DOMAIN_AFFECT_CONFIG,
                    "device_del", QMP_OK,
                    "chardev-remove", QMP_OK);
 
-    DO_TEST_ATTACH("hotplug-base-live", "disk-virtio", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_ATTACH("hotplug-base-live", "disk-virtio", false, true, VIR_DOMAIN_AFFECT_CONFIG,
                    "human-monitor-command", HMP("OK\\r\\n"),
                    "device_add", QMP_OK);
-    DO_TEST_DETACH("hotplug-base-live", "disk-virtio", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_DETACH("hotplug-base-live", "disk-virtio", false, false, VIR_DOMAIN_AFFECT_CONFIG,
                    "device_del", QMP_OK,
                    "human-monitor-command", HMP(""));
 
-    DO_TEST_ATTACH_EVENT("hotplug-base-live", "disk-virtio", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_ATTACH_EVENT("hotplug-base-live", "disk-virtio", false, true, VIR_DOMAIN_AFFECT_CONFIG,
                          "human-monitor-command", HMP("OK\\r\\n"),
                          "device_add", QMP_OK,
                          "qom-list", QOM_OK);
 
 
-    DO_TEST_DETACH("hotplug-base-live", "disk-virtio", true, true, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_DETACH("hotplug-base-live", "disk-virtio", true, true, VIR_DOMAIN_AFFECT_CONFIG,
                    "device_del", QMP_OK,
                    "qom-list", QOM_OK,
                    "human-monitor-command", HMP(""));
 
 
-    DO_TEST_DETACH("hotplug-base-live", "disk-virtio", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_DETACH("hotplug-base-live", "disk-virtio", false, false, VIR_DOMAIN_AFFECT_CONFIG,
                    "device_del", QMP_DEVICE_DELETED("virtio-disk4") QMP_OK,
                    "human-monitor-command", HMP(""),
                    "qom-list", QOM_OK);
 
-    DO_TEST_ATTACH("hotplug-base-live", "disk-usb", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_ATTACH("hotplug-base-live", "disk-usb", false, true, VIR_DOMAIN_AFFECT_CONFIG,
                    "human-monitor-command", HMP("OK\\r\\n"),
                    "device_add", QMP_OK);
-    DO_TEST_DETACH("hotplug-base-live", "disk-usb", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_DETACH("hotplug-base-live", "disk-usb", false, false, VIR_DOMAIN_AFFECT_CONFIG,
                    "device_del", QMP_OK,
                    "human-monitor-command", HMP(""));
 
-    DO_TEST_ATTACH_EVENT("hotplug-base-live", "disk-usb", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_ATTACH_EVENT("hotplug-base-live", "disk-usb", false, true, VIR_DOMAIN_AFFECT_CONFIG,
                          "human-monitor-command", HMP("OK\\r\\n"),
                          "device_add", QMP_OK,
                          "qom-list", QOM_OK);
-    DO_TEST_DETACH("hotplug-base-live", "disk-usb", true, true, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_DETACH("hotplug-base-live", "disk-usb", true, true, VIR_DOMAIN_AFFECT_CONFIG,
                    "device_del", QMP_OK,
                    "qom-list", QOM_OK,
                    "human-monitor-command", HMP(""));
-    DO_TEST_DETACH("hotplug-base-live", "disk-usb", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_DETACH("hotplug-base-live", "disk-usb", false, false, VIR_DOMAIN_AFFECT_CONFIG,
                    "device_del", QMP_DEVICE_DELETED("usb-disk16") QMP_OK,
                    "human-monitor-command", HMP(""),
                    "qom-list", QOM_OK);
 
-    DO_TEST_ATTACH("hotplug-base-live", "disk-scsi", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_ATTACH("hotplug-base-live", "disk-scsi", false, true, VIR_DOMAIN_AFFECT_CONFIG,
                    "human-monitor-command", HMP("OK\\r\\n"),
                    "device_add", QMP_OK);
-    DO_TEST_DETACH("hotplug-base-live", "disk-scsi", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_DETACH("hotplug-base-live", "disk-scsi", false, false, VIR_DOMAIN_AFFECT_CONFIG,
                    "device_del", QMP_OK,
                    "human-monitor-command", HMP(""));
 
-    DO_TEST_ATTACH_EVENT("hotplug-base-live", "disk-scsi", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_ATTACH_EVENT("hotplug-base-live", "disk-scsi", false, true, VIR_DOMAIN_AFFECT_CONFIG,
                          "human-monitor-command", HMP("OK\\r\\n"),
                          "device_add", QMP_OK,
                          "qom-list", QOM_OK);
-    DO_TEST_DETACH("hotplug-base-live", "disk-scsi", true, true, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_DETACH("hotplug-base-live", "disk-scsi", true, true, VIR_DOMAIN_AFFECT_CONFIG,
                    "device_del", QMP_OK,
                    "qom-list", QOM_OK,
                    "human-monitor-command", HMP(""));
-    DO_TEST_DETACH("hotplug-base-live", "disk-scsi", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_DETACH("hotplug-base-live", "disk-scsi", false, false, VIR_DOMAIN_AFFECT_CONFIG,
                    "device_del", QMP_DEVICE_DELETED("scsi0-0-0-5") QMP_OK,
                    "human-monitor-command", HMP(""),
                    "qom-list", QOM_OK);
 
-    DO_TEST_ATTACH("hotplug-base-without-scsi-controller-live", "disk-scsi-2", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_ATTACH("hotplug-base-without-scsi-controller-live", "disk-scsi-2", false, true, VIR_DOMAIN_AFFECT_CONFIG,
                    /* Four controllers added */
                    "device_add", QMP_OK,
                    "device_add", QMP_OK,
@@ -544,11 +664,11 @@ mymain(void)
                    "human-monitor-command", HMP("OK\\r\\n"),
                    /* Disk added */
                    "device_add", QMP_OK);
-    DO_TEST_DETACH("hotplug-base-with-scsi-controller-live", "disk-scsi-2", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_DETACH("hotplug-base-with-scsi-controller-live", "disk-scsi-2", false, false, VIR_DOMAIN_AFFECT_CONFIG,
                    "device_del", QMP_OK,
                    "human-monitor-command", HMP(""));
 
-    DO_TEST_ATTACH_EVENT("hotplug-base-without-scsi-controller-live", "disk-scsi-2", false, true, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_ATTACH_EVENT("hotplug-base-without-scsi-controller-live", "disk-scsi-2", false, true, VIR_DOMAIN_AFFECT_CONFIG,
                          /* Four controllers added */
                          "device_add", QMP_OK,
                          "device_add", QMP_OK,
@@ -558,28 +678,18 @@ mymain(void)
                          /* Disk added */
                          "device_add", QMP_OK,
                          "qom-list", QOM_OK);
-    DO_TEST_DETACH("hotplug-base-with-scsi-controller-live", "disk-scsi-2", true, true, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_DETACH("hotplug-base-with-scsi-controller-live", "disk-scsi-2", true, true, VIR_DOMAIN_AFFECT_CONFIG,
                    "device_del", QMP_OK,
                    "qom-list", QOM_OK,
                    "human-monitor-command", HMP(""));
-    DO_TEST_DETACH("hotplug-base-with-scsi-controller-live", "disk-scsi-2", false, false, VIR_DOMAIN_AFFECT_LIVE,
+    DO_TEST_DETACH("hotplug-base-with-scsi-controller-live", "disk-scsi-2", false, false, VIR_DOMAIN_AFFECT_CONFIG,
                    "device_del", QMP_DEVICE_DELETED("scsi3-0-5-7") QMP_OK,
                    "human-monitor-command", HMP(""),
                    "qom-list", QOM_OK);
 
-    DO_TEST_ATTACH("hotplug-base-live", "qemu-agent", false, true, VIR_DOMAIN_AFFECT_LIVE,
-                   "chardev-add", QMP_OK,
-                   "device_add", QMP_OK);
-    DO_TEST_DETACH("hotplug-base-live", "qemu-agent-detach", false, false, VIR_DOMAIN_AFFECT_LIVE,
-                   "device_del", QMP_OK,
-                   "chardev-remove", QMP_OK);
-
-
-    /* that one below is the first config one, it works */
     DO_TEST_ATTACH("hotplug-base-live", "qemu-agent", false, true, VIR_DOMAIN_AFFECT_CONFIG,
                    "chardev-add", QMP_OK,
                    "device_add", QMP_OK);
-
     DO_TEST_DETACH("hotplug-base-live", "qemu-agent-detach", false, false, VIR_DOMAIN_AFFECT_CONFIG,
                    "device_del", QMP_OK,
                    "chardev-remove", QMP_OK);
