@@ -294,7 +294,7 @@ testQemuHotplug(const void *data)
     case ATTACH:
         if (ATTACH == -3)
             ret = testQemuHotplugAttach(vm, dev);
-
+        /* TODO: make something similar to testQemuHotplugAttach to check which devices we can't test. */
         ret = qemuDomainAttachDeviceLiveAndConfig(NULL, vm, device_xml, &driver, VIR_DOMAIN_AFFECT_LIVE);
 
         if (ret == 0) {
