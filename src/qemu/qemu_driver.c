@@ -8442,8 +8442,6 @@ qemuDomainDetachDeviceFlags(virDomainPtr dom,
     virCheckFlags(VIR_DOMAIN_AFFECT_LIVE |
                   VIR_DOMAIN_AFFECT_CONFIG, -1);
 
-
-
     if (!(vm = qemuDomObjFromDomain(dom)))
         goto cleanup;
 
