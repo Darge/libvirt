@@ -297,9 +297,7 @@ testQemuHotplug(const void *data)
 
 
     cfg = virQEMUDriverGetConfig(&driver);
-    //config_filename = virDomainConfigFile(cfg->configDir, vm->def->name);
-    if (virAsprintf(&config_filename, "%s/%s.xml", cfg->configDir, vm->def->name) < 0)
-        goto cleanup;
+    config_filename = virDomainConfigFile(cfg->configDir, vm->def->name);
 
     if (virTestLoadFile(config_filename, &config_xml) < 0)
         goto cleanup;
