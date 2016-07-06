@@ -408,6 +408,14 @@ mymain(void)
 
 #define QMP_OK      "{\"return\": {}}"
 #define HMP(msg)    "{\"return\": \"" msg "\"}"
+#define QOM "{ " \
+            "  \"return\": [ " \
+            "  {\"name\": \"machine\", " \
+            "   \"type\": \"child<container>\"}, " \
+            "  {\"name\": \"type\", " \
+            "   \"type\": \"string\"} " \
+            " ]" \
+            "}"
 
 #define QMP_DEVICE_DELETED(dev) \
     "{"                                                     \
@@ -451,15 +459,7 @@ mymain(void)
     DO_TEST_ATTACH_EVENT("hotplug-base-live", "disk-virtio", false, true,
                          "human-monitor-command", HMP("OK\\r\\n"),
                          "device_add", QMP_OK,
-                                     "qom-list",
-                               "{ "
-                               "  \"return\": [ "
-                               "  {\"name\": \"machine\", "
-                               "   \"type\": \"child<container>\"}, "
-                               "  {\"name\": \"type\", "
-                               "   \"type\": \"string\"} "
-                               " ]"
-                               "}");
+                         "qom-list", QOM);
     DO_TEST_DETACH("hotplug-base-live", "disk-virtio", true, true,
                    "device_del", QMP_OK,
                    "human-monitor-command", HMP(""));
@@ -476,7 +476,8 @@ mymain(void)
 
     DO_TEST_ATTACH_EVENT("hotplug-base-live", "disk-usb", false, true,
                          "human-monitor-command", HMP("OK\\r\\n"),
-                         "device_add", QMP_OK);
+                         "device_add", QMP_OK,
+                         "qom-list", QOM);
     DO_TEST_DETACH("hotplug-base-live", "disk-usb", true, true,
                    "device_del", QMP_OK,
                    "human-monitor-command", HMP(""));
@@ -493,7 +494,8 @@ mymain(void)
 
     DO_TEST_ATTACH_EVENT("hotplug-base-live", "disk-scsi", false, true,
                          "human-monitor-command", HMP("OK\\r\\n"),
-                         "device_add", QMP_OK);
+                         "device_add", QMP_OK,
+                         "qom-list", QOM);
     DO_TEST_DETACH("hotplug-base-live", "disk-scsi", true, true,
                    "device_del", QMP_OK,
                    "human-monitor-command", HMP(""));
@@ -522,7 +524,8 @@ mymain(void)
                          "device_add", QMP_OK,
                          "human-monitor-command", HMP("OK\\r\\n"),
                          /* Disk added */
-                         "device_add", QMP_OK);
+                         "device_add", QMP_OK,
+                         "qom-list", QOM);
     DO_TEST_DETACH("hotplug-base-with-scsi-controller-live", "disk-scsi-2", true, true,
                    "device_del", QMP_OK,
                    "human-monitor-command", HMP(""));
