@@ -332,8 +332,14 @@ testQemuHotplug(const void *data)
         ret = qemuDomainDetachDeviceLiveAndConfig(&driver, vm, device_xml, target);
 
         if (ret == 0 || fail)
-            ret = testQemuHotplugCheckResult(vm->def, domain_xml,
-                                             domain_filename, fail);
+        {
+            if (target & VIR_DOMAIN_AFFECT_LIVE)
+                ret = testQemuHotplugCheckResult(vm->def, domain_xml,
+                                                 domain_filename, fail);
+            else if (target & VIR_DOMAIN_AFFECT_CONFIG)
+                ret = testQemuHotplugCheckResult(vm->newDef, result_xml,
+                                                 result_filename, fail);
+        }
         break;
 
     case UPDATE:
@@ -569,10 +575,16 @@ mymain(void)
                    "chardev-remove", QMP_OK);
 
 
-
+    /* that one below is the first config one, it works */
     DO_TEST_ATTACH("hotplug-base-live", "qemu-agent", false, true, VIR_DOMAIN_AFFECT_CONFIG,
                    "chardev-add", QMP_OK,
                    "device_add", QMP_OK);
+
+    DO_TEST_DETACH("hotplug-base-live", "qemu-agent-detach", false, false, VIR_DOMAIN_AFFECT_CONFIG,
+                   "device_del", QMP_OK,
+                   "chardev-remove", QMP_OK);
+
+
 
     qemuTestDriverFree(&driver);
     return (ret == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
