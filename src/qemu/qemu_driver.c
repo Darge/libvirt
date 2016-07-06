@@ -8327,7 +8327,7 @@ static int qemuDomainUpdateDeviceFlags(virDomainPtr dom,
 }
 
 int
-qemuDomainDetachDeviceliveAndConfig(virQEMUDriverPtr driver,
+qemuDomainDetachDeviceLiveAndConfig(virQEMUDriverPtr driver,
                                     virDomainObjPtr vm,
                                     const char *xml,
                                     unsigned int flags)
@@ -8453,7 +8453,7 @@ qemuDomainDetachDeviceFlags(virDomainPtr dom,
     if (virDomainObjUpdateModificationImpact(vm, &flags) < 0)
         goto endjob;
 
-    if (qemuDomainDetachDeviceliveAndConfig(driver, vm, xml, flags) < 0)
+    if (qemuDomainDetachDeviceLiveAndConfig(driver, vm, xml, flags) < 0)
       goto endjob;
 
  endjob:

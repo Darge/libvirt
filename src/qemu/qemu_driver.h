@@ -114,7 +114,7 @@ int qemuDomainAttachDeviceLiveAndConfig(virConnectPtr conn,
                                        virQEMUDriverPtr driver,
                                        unsigned int flags);
 
-int qemuDomainDetachDeviceliveAndConfig(virQEMUDriverPtr driver,
+int qemuDomainDetachDeviceLiveAndConfig(virQEMUDriverPtr driver,
                                         virDomainObjPtr vm,
                                         const char *xml,
                                         unsigned int flags);
