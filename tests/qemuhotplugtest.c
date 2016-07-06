@@ -486,7 +486,8 @@ mymain(void)
 
     DO_TEST_DETACH("hotplug-base-live", "disk-virtio", false, false, VIR_DOMAIN_AFFECT_LIVE,
                    "device_del", QMP_DEVICE_DELETED("virtio-disk4") QMP_OK,
-                   "human-monitor-command", HMP(""));
+                   "human-monitor-command", HMP(""),
+                   "qom-list", QOM_OK);
 
     DO_TEST_ATTACH("hotplug-base-live", "disk-usb", false, true, VIR_DOMAIN_AFFECT_LIVE,
                    "human-monitor-command", HMP("OK\\r\\n"),
@@ -501,10 +502,12 @@ mymain(void)
                          "qom-list", QOM_OK);
     DO_TEST_DETACH("hotplug-base-live", "disk-usb", true, true, VIR_DOMAIN_AFFECT_LIVE,
                    "device_del", QMP_OK,
+                   "qom-list", QOM_OK,
                    "human-monitor-command", HMP(""));
     DO_TEST_DETACH("hotplug-base-live", "disk-usb", false, false, VIR_DOMAIN_AFFECT_LIVE,
                    "device_del", QMP_DEVICE_DELETED("usb-disk16") QMP_OK,
-                   "human-monitor-command", HMP(""));
+                   "human-monitor-command", HMP(""),
+                   "qom-list", QOM_OK);
 
     DO_TEST_ATTACH("hotplug-base-live", "disk-scsi", false, true, VIR_DOMAIN_AFFECT_LIVE,
                    "human-monitor-command", HMP("OK\\r\\n"),
