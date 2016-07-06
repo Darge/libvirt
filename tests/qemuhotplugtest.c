@@ -248,6 +248,11 @@ testQemuHotplug(const void *data)
     char *domain_xml = NULL;
     char *device_xml = NULL;
     char *result_xml = NULL;
+
+    //char *config_filename = NULL;
+    //char *config_xml = NULL;
+    virQEMUDriverConfigPtr cfg = NULL;
+
     const char *const *tmp;
     bool fail = test->fail;
     bool keep = test->keep;
@@ -272,6 +277,13 @@ testQemuHotplug(const void *data)
     if (virTestLoadFile(domain_filename, &domain_xml) < 0 ||
         virTestLoadFile(device_filename, &device_xml) < 0)
         goto cleanup;
+
+    cfg = virQEMUDriverGetConfig(&driver);
+    //config_filename =
+    virDomainConfigFile(cfg->configDir, vm->def->name);
+
+    //if (virTestLoadFile(config_filename, &config_xml) < 0)
+    //    goto cleanup;
 
     if (test->action != UPDATE &&
         virTestLoadFile(result_filename, &result_xml) < 0)
@@ -571,6 +583,10 @@ mymain(void)
     DO_TEST_DETACH("hotplug-base-live", "qemu-agent-detach", false, false, VIR_DOMAIN_AFFECT_LIVE,
                    "device_del", QMP_OK,
                    "chardev-remove", QMP_OK);
+
+    DO_TEST_ATTACH("hotplug-base-live", "qemu-agent", false, true, VIR_DOMAIN_AFFECT_CONFIG,
+                   "chardev-add", QMP_OK,
+                   "device_add", QMP_OK);
 
     qemuTestDriverFree(&driver);
     return (ret == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
