@@ -278,13 +278,6 @@ testQemuHotplug(const void *data)
         virTestLoadFile(device_filename, &device_xml) < 0)
         goto cleanup;
 
-    cfg = virQEMUDriverGetConfig(&driver);
-    //config_filename = virDomainConfigFile(cfg->configDir, vm->def->name);
-    if (virAsprintf(&config_filename, "%s/hotplug.xml", cfg->configDir) < 0)
-        goto cleanup;
-
-    if (virTestLoadFile(config_filename, &config_xml) < 0)
-        goto cleanup;
 
     if (test->action != UPDATE &&
         virTestLoadFile(result_filename, &result_xml) < 0)
@@ -301,6 +294,17 @@ testQemuHotplug(const void *data)
                                      test->domain_filename) < 0)
             goto cleanup;
     }
+
+
+    cfg = virQEMUDriverGetConfig(&driver);
+    //config_filename = virDomainConfigFile(cfg->configDir, vm->def->name);
+    if (virAsprintf(&config_filename, "%s/%s.xml", cfg->configDir, vm->def->name) < 0)
+        goto cleanup;
+
+    if (virTestLoadFile(config_filename, &config_xml) < 0)
+        goto cleanup;
+
+
 
     if (test->action == ATTACH)
         device_parse_flags = VIR_DOMAIN_DEF_PARSE_INACTIVE;
