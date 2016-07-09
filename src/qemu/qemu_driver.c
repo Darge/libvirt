@@ -8065,7 +8065,7 @@ qemuDomainUpdateDeviceConfig(virDomainDefPtr vmdef,
     return 0;
 }
 
-static int
+int
 qemuDomainAttachDeviceLiveAndConfig(virConnectPtr conn,
                                     virDomainObjPtr vm,
                                     virQEMUDriverPtr driver,
@@ -8325,7 +8325,7 @@ static int qemuDomainUpdateDeviceFlags(virDomainPtr dom,
     return ret;
 }
 
-static int
+int
 qemuDomainDetachDeviceLiveAndConfig(virQEMUDriverPtr driver,
                                     virDomainObjPtr vm,
                                     const char *xml,

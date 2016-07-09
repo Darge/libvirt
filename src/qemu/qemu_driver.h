@@ -24,6 +24,20 @@
 #ifndef __QEMU_DRIVER_H__
 # define __QEMU_DRIVER_H__
 
+# include "domain_conf.h"
+# include "qemu_conf.h"
+
 int qemuRegister(void);
+
+int qemuDomainAttachDeviceLiveAndConfig(virConnectPtr conn,
+                                        virDomainObjPtr vm,
+                                        virQEMUDriverPtr driver,
+                                        const char *xml,
+                                        unsigned int flags);
+
+int qemuDomainDetachDeviceLiveAndConfig(virQEMUDriverPtr driver,
+                                        virDomainObjPtr vm,
+                                        const char *xml,
+                                        unsigned int flags);
 
 #endif /* __QEMU_DRIVER_H__ */
