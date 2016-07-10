@@ -234,12 +234,29 @@ testQemuHotplug(const void *data)
     if (virAsprintf(&domain_filename, "%s/qemuhotplugtestdomains/qemuhotplug-%s.xml",
                     abs_srcdir, test->domain_filename) < 0 ||
         virAsprintf(&device_filename, "%s/qemuhotplugtestdevices/qemuhotplug-%s.xml",
-                    abs_srcdir, test->device_filename) < 0 ||
-        virAsprintf(&result_filename,
+                    abs_srcdir, test->device_filename) < 0)
+        goto cleanup;
+
+    switch (target) {
+    case VIR_DOMAIN_AFFECT_LIVE:
+        if (virAsprintf(&result_filename,
                     "%s/qemuhotplugtestdomains/qemuhotplug-%s+%s.xml",
                     abs_srcdir, test->domain_filename,
                     test->device_filename) < 0)
+            goto cleanup;
+        break;
+    case VIR_DOMAIN_AFFECT_CONFIG:
+        if (virAsprintf(&result_filename,
+                    "%s/qemuhotplugtestdomains/qemuhotplug-%s+%s+config.xml",
+                    abs_srcdir, test->domain_filename,
+                    test->device_filename) < 0)
+            goto cleanup;
+        break;
+    default:
+        VIR_TEST_VERBOSE("target can either be VIR_DOMAIN_AFFECT_LIVE"
+                         " or VIR_DOMAIN_AFFECT_CONFIG\n");
         goto cleanup;
+    }
 
     if (virTestLoadFile(domain_filename, &domain_xml) < 0 ||
         virTestLoadFile(device_filename, &device_xml) < 0)
@@ -303,16 +320,26 @@ testQemuHotplug(const void *data)
              * envelope */
             VIR_FREE(dev);
         }
-        if (ret == 0 || fail)
-            ret = testQemuHotplugCheckResult(vm->def, result_xml,
-                                             result_filename, fail);
+        if (ret == 0 || fail) {
+            if (target == VIR_DOMAIN_AFFECT_LIVE)
+                ret = testQemuHotplugCheckResult(vm->def, result_xml,
+                                                 result_filename, fail);
+            else if (target == VIR_DOMAIN_AFFECT_CONFIG)
+                ret = testQemuHotplugCheckResult(vm->newDef, result_xml,
+                                                 result_filename, fail);
+        }
         break;
 
     case DETACH:
         ret = testQemuHotplugDetach(vm, dev, device_xml, target);
-        if (ret == 0 || fail)
-            ret = testQemuHotplugCheckResult(vm->def, domain_xml,
-                                             domain_filename, fail);
+        if (ret == 0 || fail) {
+            if (target == VIR_DOMAIN_AFFECT_LIVE)
+                ret = testQemuHotplugCheckResult(vm->def, domain_xml,
+                                                 domain_filename, fail);
+            else if (target == VIR_DOMAIN_AFFECT_CONFIG)
+                ret = testQemuHotplugCheckResult(vm->newDef, domain_xml,
+                                                 domain_filename, fail);
+        }
         break;
 
     case UPDATE:
