@@ -606,6 +606,13 @@ mymain(void)
                    "human-monitor-command", HMP("OK\\r\\n"),
                    "device_add", QMP_OK);
 
+    DO_TEST_ATTACH("base-config", "qemu-agent", false, true, VIR_DOMAIN_AFFECT_CONFIG,
+                   "chardev-add", QMP_OK,
+                   "device_add", QMP_OK);
+    DO_TEST_DETACH("base-config", "qemu-agent", false, false, VIR_DOMAIN_AFFECT_CONFIG,
+                   "device_del", QMP_OK,
+                   "chardev-remove", QMP_OK);
+
     qemuTestDriverFree(&driver);
     return (ret == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
