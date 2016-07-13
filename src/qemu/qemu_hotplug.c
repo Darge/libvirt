@@ -308,6 +308,7 @@ qemuDomainAttachVirtioDiskDevice(virConnectPtr conn,
     char *drivestr = NULL;
     char *drivealias = NULL;
     bool releaseaddr = false;
+    virDomainCCWAddressSetPtr ccwaddrs = NULL;
     virQEMUDriverConfigPtr cfg = virQEMUDriverGetConfig(driver);
     const char *src = virDomainDiskGetSource(disk);
 
@@ -327,7 +328,9 @@ qemuDomainAttachVirtioDiskDevice(virConnectPtr conn,
         goto cleanup;
 
     if (disk->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW) {
-        if (virDomainCCWAddressAssign(&disk->info, priv->ccwaddrs,
+        if (!(ccwaddrs = qemuDomainCCWAddrSetCreateFromDomain(vm->def)))
+            goto error;
+        if (virDomainCCWAddressAssign(&disk->info, ccwaddrs,
                                       !disk->info.addr.ccw.assigned) < 0)
             goto error;
     } else if (!disk->info.type ||
@@ -375,6 +378,7 @@ qemuDomainAttachVirtioDiskDevice(virConnectPtr conn,
 
  cleanup:
     qemuDomainSecretDiskDestroy(disk);
+    virDomainCCWAddressSetFree(ccwaddrs);
     VIR_FREE(devstr);
     VIR_FREE(drivestr);
     VIR_FREE(drivealias);
@@ -416,6 +420,7 @@ int qemuDomainAttachControllerDevice(virQEMUDriverPtr driver,
     const char* type = virDomainControllerTypeToString(controller->type);
     char *devstr = NULL;
     qemuDomainObjPrivatePtr priv = vm->privateData;
+    virDomainCCWAddressSetPtr ccwaddrs = NULL;
     bool releaseaddr = false;
 
     if (controller->type != VIR_DOMAIN_CONTROLLER_TYPE_SCSI) {
@@ -457,7 +462,9 @@ int qemuDomainAttachControllerDevice(virQEMUDriverPtr driver,
         if (virDomainPCIAddressEnsureAddr(priv->pciaddrs, &controller->info) < 0)
             goto cleanup;
     } else if (controller->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW) {
-        if (virDomainCCWAddressAssign(&controller->info, priv->ccwaddrs,
+        if (!(ccwaddrs = qemuDomainCCWAddrSetCreateFromDomain(vm->def)))
+            goto cleanup;
+        if (virDomainCCWAddressAssign(&controller->info, ccwaddrs,
                                       !controller->info.addr.ccw.assigned) < 0)
             goto cleanup;
     }
@@ -490,6 +497,7 @@ int qemuDomainAttachControllerDevice(virQEMUDriverPtr driver,
         qemuDomainReleaseDeviceAddress(vm, &controller->info, NULL);
 
     VIR_FREE(devstr);
+    virDomainCCWAddressSetFree(ccwaddrs);
     return ret;
 }
 
@@ -820,6 +828,7 @@ qemuDomainAttachNetDevice(virQEMUDriverPtr driver,
     int actualType;
     virNetDevBandwidthPtr actualBandwidth;
     virQEMUDriverConfigPtr cfg = virQEMUDriverGetConfig(driver);
+    virDomainCCWAddressSetPtr ccwaddrs = NULL;
     size_t i;
 
     /* preallocate new slot for device */
@@ -957,7 +966,9 @@ qemuDomainAttachNetDevice(virQEMUDriverPtr driver,
     if (qemuDomainMachineIsS390CCW(vm->def) &&
         virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_CCW)) {
         net->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW;
-        if (virDomainCCWAddressAssign(&net->info, priv->ccwaddrs,
+        if (!(ccwaddrs = qemuDomainCCWAddrSetCreateFromDomain(vm->def)))
+            goto cleanup;
+        if (virDomainCCWAddressAssign(&net->info, ccwaddrs,
                                       !net->info.addr.ccw.assigned) < 0)
             goto cleanup;
     } else if (virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_VIRTIO_S390)) {
@@ -1131,6 +1142,7 @@ qemuDomainAttachNetDevice(virQEMUDriverPtr driver,
     VIR_FREE(vhostfd);
     VIR_FREE(vhostfdName);
     virObjectUnref(cfg);
+    virDomainCCWAddressSetFree(ccwaddrs);
 
     return ret;
 
@@ -1592,6 +1604,7 @@ qemuDomainAttachRNGDevice(virQEMUDriverPtr driver,
     char *charAlias = NULL;
     char *objAlias = NULL;
     virJSONValuePtr props = NULL;
+    virDomainCCWAddressSetPtr ccwaddrs = NULL;
     const char *type;
     int ret = -1;
 
@@ -1620,9 +1633,11 @@ qemuDomainAttachRNGDevice(virQEMUDriverPtr driver,
         if (virDomainPCIAddressEnsureAddr(priv->pciaddrs, &rng->info) < 0)
             return -1;
     } else if (rng->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW) {
-        if (virDomainCCWAddressAssign(&rng->info, priv->ccwaddrs,
+        if (!(ccwaddrs = qemuDomainCCWAddrSetCreateFromDomain(vm->def)))
+            goto cleanup;
+        if (virDomainCCWAddressAssign(&rng->info, ccwaddrs,
                                       !rng->info.addr.ccw.assigned) < 0)
-            return -1;
+            goto cleanup;
     }
 
     /* build required metadata */
@@ -1671,6 +1686,7 @@ qemuDomainAttachRNGDevice(virQEMUDriverPtr driver,
     VIR_FREE(charAlias);
     VIR_FREE(objAlias);
     VIR_FREE(devstr);
+    virDomainCCWAddressSetFree(ccwaddrs);
     return ret;
 
     /* rollback */
