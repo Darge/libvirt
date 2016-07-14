@@ -27,12 +27,12 @@
 # include "virpci.h"
 # include "bhyve_domain.h"
 
-int bhyveDomainAssignPCIAddresses(virDomainDefPtr def, virDomainObjPtr obj);
+int bhyveDomainAssignPCIAddresses(virDomainDefPtr def);
 
 virDomainPCIAddressSetPtr bhyveDomainPCIAddressSetCreate(virDomainDefPtr def,
                                                          unsigned int nbuses);
 
-int bhyveDomainAssignAddresses(virDomainDefPtr def, virDomainObjPtr obj)
+int bhyveDomainAssignAddresses(virDomainDefPtr def)
     ATTRIBUTE_NONNULL(1);
 
 #endif /* __BHYVE_DEVICE_H__ */

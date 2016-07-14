@@ -135,38 +135,26 @@ bhyveAssignDevicePCISlots(virDomainDefPtr def,
     return -1;
 }
 
-int bhyveDomainAssignPCIAddresses(virDomainDefPtr def,
-                                  virDomainObjPtr obj)
+int bhyveDomainAssignPCIAddresses(virDomainDefPtr def)
 {
-    virDomainPCIAddressSetPtr addrs = NULL;
-    bhyveDomainObjPrivatePtr priv = NULL;
+    virDomainPCIAddressSetPtr pciaddrs = NULL;
 
     int ret = -1;
 
-    if (!(addrs = bhyveDomainPCIAddressSetCreate(def, 1)))
+    if (!(pciaddrs = bhyveDomainPCIAddressSetCreate(def, 1)))
         goto cleanup;
 
-    if (bhyveAssignDevicePCISlots(def, addrs) < 0)
+    if (bhyveAssignDevicePCISlots(def, pciaddrs) < 0)
         goto cleanup;
-
-    if (obj && obj->privateData) {
-        priv = obj->privateData;
-        if (addrs) {
-            virDomainPCIAddressSetFree(priv->pciaddrs);
-            priv->persistentAddrs = 1;
-            priv->pciaddrs = addrs;
-        } else {
-            priv->persistentAddrs = 0;
-        }
-    }
 
     ret = 0;
 
  cleanup:
+    virDomainPCIAddressSetFree(pciaddrs);
     return ret;
 }
 
-int bhyveDomainAssignAddresses(virDomainDefPtr def, virDomainObjPtr obj)
+int bhyveDomainAssignAddresses(virDomainDefPtr def)
 {
-    return bhyveDomainAssignPCIAddresses(def, obj);
+    return bhyveDomainAssignPCIAddresses(def);
 }

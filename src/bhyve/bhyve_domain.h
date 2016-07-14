@@ -31,9 +31,6 @@
 typedef struct _bhyveDomainObjPrivate bhyveDomainObjPrivate;
 typedef bhyveDomainObjPrivate *bhyveDomainObjPrivatePtr;
 struct _bhyveDomainObjPrivate {
-    virDomainPCIAddressSetPtr pciaddrs;
-    bool persistentAddrs;
-
     bhyveMonitorPtr mon;
 };
 

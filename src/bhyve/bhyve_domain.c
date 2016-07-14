@@ -47,8 +47,6 @@ bhyveDomainObjPrivateFree(void *data)
 {
     bhyveDomainObjPrivatePtr priv = data;
 
-    virDomainPCIAddressSetFree(priv->pciaddrs);
-
     VIR_FREE(priv);
 }
 
