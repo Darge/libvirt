@@ -44,6 +44,10 @@ void qemuDomainReleaseDeviceAddress(virDomainObjPtr vm,
 virDomainCCWAddressSetPtr
 qemuDomainCCWAddrSetCreateFromDomain(virDomainDefPtr def);
 
+virDomainPCIAddressSetPtr
+qemuDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
+                                     virQEMUCapsPtr qemuCaps);
+
 # define __QEMU_DOMAIN_ADDRESS_H__
 
 #endif /* __QEMU_DOMAIN_ADDRESS_H__ */
