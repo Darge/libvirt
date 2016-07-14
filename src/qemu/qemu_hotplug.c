@@ -307,10 +307,9 @@ qemuDomainAttachVirtioDiskDevice(virConnectPtr conn,
     char *devstr = NULL;
     char *drivestr = NULL;
     char *drivealias = NULL;
-    bool releaseaddr = false;
     virDomainCCWAddressSetPtr ccwaddrs = NULL;
+    virDomainPCIAddressSetPtr pciaddrs = NULL;
     virQEMUDriverConfigPtr cfg = virQEMUDriverGetConfig(driver);
-    const char *src = virDomainDiskGetSource(disk);
 
     if (!disk->info.type) {
         if (qemuDomainMachineIsS390CCW(vm->def) &&
@@ -335,10 +334,13 @@ qemuDomainAttachVirtioDiskDevice(virConnectPtr conn,
             goto error;
     } else if (!disk->info.type ||
                 disk->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI) {
-        if (virDomainPCIAddressEnsureAddr(priv->pciaddrs, &disk->info) < 0)
+        if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def,
+                                                              priv->qemuCaps)))
+            goto error;
+        if (virDomainPCIAddressEnsureAddr(pciaddrs, &disk->info) < 0)
             goto error;
     }
-    releaseaddr = true;
+
     if (qemuAssignDeviceDiskAlias(vm->def, disk, priv->qemuCaps) < 0)
         goto error;
 
@@ -366,10 +368,8 @@ qemuDomainAttachVirtioDiskDevice(virConnectPtr conn,
     if (qemuMonitorAddDevice(priv->mon, devstr) < 0)
         goto failadddevice;
 
-    if (qemuDomainObjExitMonitor(driver, vm) < 0) {
-        releaseaddr = false;
+    if (qemuDomainObjExitMonitor(driver, vm) < 0)
         goto failexitmonitor;
-    }
 
     virDomainAuditDisk(vm, NULL, disk->src, "attach", true);
 
@@ -379,6 +379,7 @@ qemuDomainAttachVirtioDiskDevice(virConnectPtr conn,
  cleanup:
     qemuDomainSecretDiskDestroy(disk);
     virDomainCCWAddressSetFree(ccwaddrs);
+    virDomainPCIAddressSetFree(pciaddrs);
     VIR_FREE(devstr);
     VIR_FREE(drivestr);
     VIR_FREE(drivealias);
@@ -397,16 +398,10 @@ qemuDomainAttachVirtioDiskDevice(virConnectPtr conn,
     }
 
  failadddrive:
-    if (qemuDomainObjExitMonitor(driver, vm) < 0)
-        releaseaddr = false;
-
  failexitmonitor:
     virDomainAuditDisk(vm, NULL, disk->src, "attach", false);
 
  error:
-    if (releaseaddr)
-        qemuDomainReleaseDeviceAddress(vm, &disk->info, src);
-
     ignore_value(qemuDomainPrepareDisk(driver, vm, disk, NULL, true));
     goto cleanup;
 }
@@ -421,7 +416,7 @@ int qemuDomainAttachControllerDevice(virQEMUDriverPtr driver,
     char *devstr = NULL;
     qemuDomainObjPrivatePtr priv = vm->privateData;
     virDomainCCWAddressSetPtr ccwaddrs = NULL;
-    bool releaseaddr = false;
+    virDomainPCIAddressSetPtr pciaddrs = NULL;
 
     if (controller->type != VIR_DOMAIN_CONTROLLER_TYPE_SCSI) {
         virReportError(VIR_ERR_OPERATION_UNSUPPORTED,
@@ -459,7 +454,10 @@ int qemuDomainAttachControllerDevice(virQEMUDriverPtr driver,
 
     if (controller->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE ||
         controller->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI) {
-        if (virDomainPCIAddressEnsureAddr(priv->pciaddrs, &controller->info) < 0)
+        if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def,
+                                                              priv->qemuCaps)))
+            goto cleanup;
+        if (virDomainPCIAddressEnsureAddr(pciaddrs, &controller->info) < 0)
             goto cleanup;
     } else if (controller->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW) {
         if (!(ccwaddrs = qemuDomainCCWAddrSetCreateFromDomain(vm->def)))
@@ -468,7 +466,7 @@ int qemuDomainAttachControllerDevice(virQEMUDriverPtr driver,
                                       !controller->info.addr.ccw.assigned) < 0)
             goto cleanup;
     }
-    releaseaddr = true;
+
     if (qemuAssignDeviceControllerAlias(vm->def, priv->qemuCaps, controller) < 0)
         goto cleanup;
 
@@ -481,7 +479,6 @@ int qemuDomainAttachControllerDevice(virQEMUDriverPtr driver,
     qemuDomainObjEnterMonitor(driver, vm);
     ret = qemuMonitorAddDevice(priv->mon, devstr);
     if (qemuDomainObjExitMonitor(driver, vm) < 0) {
-        releaseaddr = false;
         ret = -1;
         goto cleanup;
     }
@@ -493,11 +490,10 @@ int qemuDomainAttachControllerDevice(virQEMUDriverPtr driver,
     }
 
  cleanup:
-    if (ret != 0 && releaseaddr)
-        qemuDomainReleaseDeviceAddress(vm, &controller->info, NULL);
 
     VIR_FREE(devstr);
     virDomainCCWAddressSetFree(ccwaddrs);
+    virDomainPCIAddressSetFree(pciaddrs);
     return ret;
 }
 
@@ -823,12 +819,12 @@ qemuDomainAttachNetDevice(virQEMUDriverPtr driver,
     virNetDevVPortProfilePtr vport = NULL;
     int ret = -1;
     int vlan;
-    bool releaseaddr = false;
     bool iface_connected = false;
     int actualType;
     virNetDevBandwidthPtr actualBandwidth;
     virQEMUDriverConfigPtr cfg = virQEMUDriverGetConfig(driver);
     virDomainCCWAddressSetPtr ccwaddrs = NULL;
+    virDomainPCIAddressSetPtr pciaddrs = NULL;
     size_t i;
 
     /* preallocate new slot for device */
@@ -975,11 +971,14 @@ qemuDomainAttachNetDevice(virQEMUDriverPtr driver,
         virReportError(VIR_ERR_CONFIG_UNSUPPORTED, "%s",
                        _("virtio-s390 net device cannot be hotplugged."));
         goto cleanup;
-    } else if (virDomainPCIAddressEnsureAddr(priv->pciaddrs, &net->info) < 0) {
-        goto cleanup;
+    } else {
+        if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def,
+                                                              priv->qemuCaps)))
+            goto cleanup;
+        if (virDomainPCIAddressEnsureAddr(pciaddrs, &net->info) < 0)
+            goto cleanup;
     }
 
-    releaseaddr = true;
 
     if (virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_NETDEV)) {
         vlan = -1;
@@ -1093,8 +1092,6 @@ qemuDomainAttachNetDevice(virQEMUDriverPtr driver,
     if (!ret) {
         vm->def->nets[vm->def->nnets++] = net;
     } else {
-        if (releaseaddr)
-            qemuDomainReleaseDeviceAddress(vm, &net->info, NULL);
 
         if (iface_connected) {
             virDomainConfNWFilterTeardown(net);
@@ -1189,11 +1186,11 @@ qemuDomainAttachHostPCIDevice(virQEMUDriverPtr driver,
     char *devstr = NULL;
     int configfd = -1;
     char *configfd_name = NULL;
-    bool releaseaddr = false;
     bool teardowncgroup = false;
     bool teardownlabel = false;
     int backend;
     virQEMUDriverConfigPtr cfg = virQEMUDriverGetConfig(driver);
+    virDomainPCIAddressSetPtr pciaddrs = NULL;
     unsigned int flags = 0;
 
     if (VIR_REALLOC_N(vm->def->hostdevs, vm->def->nhostdevs + 1) < 0)
@@ -1255,9 +1252,10 @@ qemuDomainAttachHostPCIDevice(virQEMUDriverPtr driver,
 
     if (qemuAssignDeviceHostdevAlias(vm->def, &hostdev->info->alias, -1) < 0)
         goto error;
-    if (virDomainPCIAddressEnsureAddr(priv->pciaddrs, hostdev->info) < 0)
+    if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def, priv->qemuCaps)))
+        goto cleanup;
+    if (virDomainPCIAddressEnsureAddr(pciaddrs, hostdev->info) < 0)
         goto error;
-    releaseaddr = true;
     if (backend != VIR_DOMAIN_HOSTDEV_PCI_BACKEND_VFIO &&
         virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_PCI_CONFIGFD)) {
         configfd = qemuOpenPCIConfig(hostdev);
@@ -1294,6 +1292,7 @@ qemuDomainAttachHostPCIDevice(virQEMUDriverPtr driver,
     VIR_FREE(configfd_name);
     VIR_FORCE_CLOSE(configfd);
     virObjectUnref(cfg);
+    virDomainPCIAddressSetFree(pciaddrs);
 
     return 0;
 
@@ -1304,9 +1303,6 @@ qemuDomainAttachHostPCIDevice(virQEMUDriverPtr driver,
         virSecurityManagerRestoreHostdevLabel(driver->securityManager,
                                               vm->def, hostdev, NULL) < 0)
         VIR_WARN("Unable to restore host device labelling on hotplug fail");
-
-    if (releaseaddr)
-        qemuDomainReleaseDeviceAddress(vm, hostdev->info, NULL);
 
     qemuHostdevReAttachPCIDevices(driver, vm->def->name, &hostdev, 1);
 
@@ -1488,6 +1484,7 @@ qemuDomainAttachChrDeviceAssignAddr(virDomainDefPtr def,
 {
     int ret = -1;
     virDomainVirtioSerialAddrSetPtr vioaddrs = NULL;
+    virDomainPCIAddressSetPtr pciaddrs = NULL;
 
     if (!(vioaddrs = virDomainVirtioSerialAddrSetCreateFromDomain(def)))
         goto cleanup;
@@ -1501,7 +1498,9 @@ qemuDomainAttachChrDeviceAssignAddr(virDomainDefPtr def,
 
     } else if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_SERIAL &&
                chr->targetType == VIR_DOMAIN_CHR_SERIAL_TARGET_TYPE_PCI) {
-        if (virDomainPCIAddressEnsureAddr(priv->pciaddrs, &chr->info) < 0)
+        if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(def, priv->qemuCaps)))
+            goto cleanup;
+        if (virDomainPCIAddressEnsureAddr(pciaddrs, &chr->info) < 0)
             goto cleanup;
         ret = 1;
 
@@ -1527,6 +1526,7 @@ qemuDomainAttachChrDeviceAssignAddr(virDomainDefPtr def,
 
  cleanup:
     virDomainVirtioSerialAddrSetFree(vioaddrs);
+    virDomainPCIAddressSetFree(pciaddrs);
     return ret;
 }
 
@@ -1539,7 +1539,6 @@ int qemuDomainAttachChrDevice(virQEMUDriverPtr driver,
     virDomainDefPtr vmdef = vm->def;
     char *devstr = NULL;
     char *charAlias = NULL;
-    bool need_release = false;
 
     if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_CHANNEL &&
         qemuDomainPrepareChannel(chr, priv->channelTargetDir) < 0)
@@ -1550,8 +1549,6 @@ int qemuDomainAttachChrDevice(virQEMUDriverPtr driver,
 
     if ((rc = qemuDomainAttachChrDeviceAssignAddr(vm->def, priv, chr)) < 0)
         goto cleanup;
-    if (rc == 1)
-        need_release = true;
 
     if (qemuBuildChrDeviceStr(&devstr, vmdef, chr, priv->qemuCaps) < 0)
         goto cleanup;
@@ -1579,8 +1576,6 @@ int qemuDomainAttachChrDevice(virQEMUDriverPtr driver,
  cleanup:
     if (ret < 0 && virDomainObjIsActive(vm))
         qemuDomainChrInsertPreAllocCleanup(vmdef, chr);
-    if (ret < 0 && need_release)
-        qemuDomainReleaseDeviceAddress(vm, &chr->info, NULL);
     VIR_FREE(charAlias);
     VIR_FREE(devstr);
     return ret;
@@ -1605,6 +1600,7 @@ qemuDomainAttachRNGDevice(virQEMUDriverPtr driver,
     char *objAlias = NULL;
     virJSONValuePtr props = NULL;
     virDomainCCWAddressSetPtr ccwaddrs = NULL;
+    virDomainPCIAddressSetPtr pciaddrs = NULL;
     const char *type;
     int ret = -1;
 
@@ -1630,8 +1626,10 @@ qemuDomainAttachRNGDevice(virQEMUDriverPtr driver,
 
     if (rng->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE ||
         rng->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI) {
-        if (virDomainPCIAddressEnsureAddr(priv->pciaddrs, &rng->info) < 0)
-            return -1;
+        if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def, priv->qemuCaps)))
+            goto cleanup;
+        if (virDomainPCIAddressEnsureAddr(pciaddrs, &rng->info) < 0)
+            goto cleanup;
     } else if (rng->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_CCW) {
         if (!(ccwaddrs = qemuDomainCCWAddrSetCreateFromDomain(vm->def)))
             goto cleanup;
@@ -1681,12 +1679,11 @@ qemuDomainAttachRNGDevice(virQEMUDriverPtr driver,
     virDomainAuditRNG(vm, NULL, rng, "attach", ret == 0);
  cleanup:
     virJSONValueFree(props);
-    if (ret < 0 && vm)
-        qemuDomainReleaseDeviceAddress(vm, &rng->info, NULL);
     VIR_FREE(charAlias);
     VIR_FREE(objAlias);
     VIR_FREE(devstr);
     virDomainCCWAddressSetFree(ccwaddrs);
+    virDomainPCIAddressSetFree(pciaddrs);
     return ret;
 
     /* rollback */
@@ -2866,8 +2863,6 @@ qemuDomainRemoveDiskDevice(virQEMUDriverPtr driver,
         }
     }
 
-    qemuDomainReleaseDeviceAddress(vm, &disk->info, src);
-
     if (virSecurityManagerRestoreDiskLabel(driver->securityManager,
                                            vm->def, disk) < 0)
         VIR_WARN("Unable to restore security label on %s", src);
@@ -2908,7 +2903,6 @@ qemuDomainRemoveControllerDevice(virQEMUDriverPtr driver,
         }
     }
 
-    qemuDomainReleaseDeviceAddress(vm, &controller->info, NULL);
     virDomainControllerDefFree(controller);
     return 0;
 }
@@ -2968,7 +2962,6 @@ qemuDomainRemovePCIHostDevice(virQEMUDriverPtr driver,
                               virDomainHostdevDefPtr hostdev)
 {
     qemuHostdevReAttachPCIDevices(driver, vm->def->name, &hostdev, 1);
-    qemuDomainReleaseDeviceAddress(vm, hostdev->info, NULL);
 }
 
 static void
@@ -3151,7 +3144,6 @@ qemuDomainRemoveNetDevice(virQEMUDriverPtr driver,
         }
     }
 
-    qemuDomainReleaseDeviceAddress(vm, &net->info, NULL);
     virDomainConfNWFilterTeardown(net);
 
     if (cfg->macFilter && (net->ifname != NULL)) {
@@ -3272,7 +3264,6 @@ qemuDomainRemoveRNGDevice(virQEMUDriverPtr driver,
 
     if ((idx = virDomainRNGFind(vm->def, rng)) >= 0)
         virDomainRNGRemove(vm->def, idx);
-    qemuDomainReleaseDeviceAddress(vm, &rng->info, NULL);
     virDomainRNGDefFree(rng);
     ret = 0;
 
@@ -4128,10 +4119,8 @@ int qemuDomainDetachChrDevice(virQEMUDriverPtr driver,
     if (qemuDomainObjExitMonitor(driver, vm) < 0)
         goto cleanup;
 
-    if ((ret = qemuDomainWaitForDeviceRemoval(vm)) == 1) {
-        qemuDomainReleaseDeviceAddress(vm, &tmpChr->info, NULL);
+    if ((ret = qemuDomainWaitForDeviceRemoval(vm)) == 1)
         ret = qemuDomainRemoveChrDevice(driver, vm, tmpChr);
-    }
 
  cleanup:
     qemuDomainResetDeviceRemoval(vm);
