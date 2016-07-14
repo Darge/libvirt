@@ -1466,12 +1466,10 @@ qemuDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
 
 static int
 qemuDomainAssignPCIAddresses(virDomainDefPtr def,
-                             virQEMUCapsPtr qemuCaps,
-                             virDomainObjPtr obj)
+                             virQEMUCapsPtr qemuCaps)
 {
     int ret = -1;
     virDomainPCIAddressSetPtr addrs = NULL;
-    qemuDomainObjPrivatePtr priv = NULL;
     int max_idx = -1;
     int nbuses = 0;
     size_t i;
@@ -1623,14 +1621,6 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
                 goto cleanup;
             }
         }
-    }
-
-    if (obj && obj->privateData) {
-        priv = obj->privateData;
-        /* if this is the live domain object, we persist the PCI addresses */
-        virDomainPCIAddressSetFree(priv->pciaddrs);
-        priv->pciaddrs = addrs;
-        addrs = NULL;
     }
 
     ret = 0;
@@ -1791,7 +1781,7 @@ qemuDomainAssignUSBAddresses(virDomainDefPtr def,
 int
 qemuDomainAssignAddresses(virDomainDefPtr def,
                           virQEMUCapsPtr qemuCaps,
-                          virDomainObjPtr obj,
+                          virDomainObjPtr obj ATTRIBUTE_UNUSED,
                           bool newDomain)
 {
     if (qemuDomainAssignVirtioSerialAddresses(def) < 0)
@@ -1805,7 +1795,7 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
 
     qemuDomainAssignARMVirtioMMIOAddresses(def, qemuCaps);
 
-    if (qemuDomainAssignPCIAddresses(def, qemuCaps, obj) < 0)
+    if (qemuDomainAssignPCIAddresses(def, qemuCaps) < 0)
         return -1;
 
     if (newDomain && qemuDomainAssignUSBAddresses(def, obj) < 0)
