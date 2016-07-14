@@ -37,10 +37,6 @@ int qemuDomainAssignAddresses(virDomainDefPtr def,
                               bool newDomain)
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
 
-void qemuDomainReleaseDeviceAddress(virDomainObjPtr vm,
-                                    virDomainDeviceInfoPtr info,
-                                    const char *devstr);
-
 virDomainCCWAddressSetPtr
 qemuDomainCCWAddrSetCreateFromDomain(virDomainDefPtr def);
 

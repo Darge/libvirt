@@ -1664,21 +1664,3 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
 
     return 0;
 }
-
-
-void
-qemuDomainReleaseDeviceAddress(virDomainObjPtr vm,
-                               virDomainDeviceInfoPtr info,
-                               const char *devstr)
-{
-    qemuDomainObjPrivatePtr priv = vm->privateData;
-
-    if (!devstr)
-        devstr = info->alias;
-
-    else if (virDeviceInfoPCIAddressPresent(info) &&
-             virDomainPCIAddressReleaseSlot(priv->pciaddrs,
-                                            &info->addr.pci) < 0)
-        VIR_WARN("Unable to release PCI address on %s",
-                 NULLSTR(devstr));
-}
