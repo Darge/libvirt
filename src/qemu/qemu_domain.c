@@ -1298,7 +1298,6 @@ qemuDomainObjPrivateFree(void *data)
     virObjectUnref(priv->qemuCaps);
 
     virCgroupFree(&priv->cgroup);
-    virDomainPCIAddressSetFree(priv->pciaddrs);
     virDomainChrSourceDefFree(priv->monConfig);
     qemuDomainObjFreeJob(priv);
     VIR_FREE(priv->lockState);
