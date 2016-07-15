@@ -116,13 +116,13 @@ testQemuHotplugAttach(virDomainObjPtr vm,
     switch (dev->type) {
     case VIR_DOMAIN_DEVICE_DISK:
     case VIR_DOMAIN_DEVICE_CHR:
+    default:
         /* conn in only used for storage pool and secrets lookup so as long
          * as we don't use any of them, passing NULL should be safe
          */
         ret = qemuDomainAttachDeviceLiveAndConfig(NULL, vm, &driver,
                                                   device_xml, target);
         break;
-    default:
         VIR_TEST_VERBOSE("device type '%s' cannot be attached\n",
                 virDomainDeviceTypeToString(dev->type));
         break;
@@ -142,10 +142,10 @@ testQemuHotplugDetach(virDomainObjPtr vm,
     switch (dev->type) {
     case VIR_DOMAIN_DEVICE_DISK:
     case VIR_DOMAIN_DEVICE_CHR:
+    default:
         ret = qemuDomainDetachDeviceLiveAndConfig(&driver, vm,
                                                   device_xml, target);
         break;
-    default:
         VIR_TEST_VERBOSE("device type '%s' cannot be detached\n",
                 virDomainDeviceTypeToString(dev->type));
         break;
@@ -612,6 +612,20 @@ mymain(void)
     DO_TEST_DETACH("base-config", "qemu-agent", false, false, VIR_DOMAIN_AFFECT_CONFIG,
                    "device_del", QMP_OK,
                    "chardev-remove", QMP_OK);
+
+    DO_TEST_ATTACH("base-live", "controller-scsi", false, true, VIR_DOMAIN_AFFECT_LIVE,
+                   "device_add", QMP_OK);
+    DO_TEST_ATTACH("base-live", "controller-scsi-2", false, true, VIR_DOMAIN_AFFECT_LIVE,
+                   "device_add", QMP_OK);
+    DO_TEST_DETACH("base-live-detached-scsi-2", "controller-scsi-2", false, true, VIR_DOMAIN_AFFECT_LIVE,
+                   "device_del", QMP_OK);
+    DO_TEST_ATTACH("base-live-detached-scsi-2", "controller-scsi-2", false, true, VIR_DOMAIN_AFFECT_LIVE,
+                   "device_add", QMP_OK);
+    DO_TEST_DETACH("base-live-detached-1-scsi", "controller-scsi-1-detaching", false, true, VIR_DOMAIN_AFFECT_LIVE,
+                   "device_del", QMP_OK);
+    DO_TEST_ATTACH("base-live-detached-1-scsi", "controller-scsi-1-detaching", false, true, VIR_DOMAIN_AFFECT_LIVE,
+                   "device_add", QMP_OK);
+
 
     qemuTestDriverFree(&driver);
     return (ret == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
