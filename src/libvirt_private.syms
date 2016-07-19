@@ -114,6 +114,7 @@ virDomainPCIAddressSlotInUse;
 virDomainPCIAddressValidate;
 virDomainPCIBusFullyReserved;
 virDomainPCIControllerModelToConnectType;
+virDomainSupportsPCI;
 virDomainValidateDevicePCISlotsChipsets;
 virDomainValidateDevicePCISlotsPIIX3;
 virDomainValidateDevicePCISlotsQ35;
