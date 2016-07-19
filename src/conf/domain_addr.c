@@ -1190,3 +1190,41 @@ virDomainVirtioSerialAddrReserve(virDomainDefPtr def ATTRIBUTE_UNUSED,
     VIR_FREE(str);
     return ret;
 }
+
+
+int
+virDomainAssignVirtioSerialAddresses(virDomainDefPtr def)
+{
+    int ret = -1;
+    size_t i;
+    virDomainVirtioSerialAddrSetPtr addrs = NULL;
+
+    if (!(addrs = virDomainVirtioSerialAddrSetCreateFromDomain(def)))
+        goto cleanup;
+
+    VIR_DEBUG("Finished reserving existing ports");
+
+    for (i = 0; i < def->nconsoles; i++) {
+        virDomainChrDefPtr chr = def->consoles[i];
+        if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_CONSOLE &&
+            chr->targetType == VIR_DOMAIN_CHR_CONSOLE_TARGET_TYPE_VIRTIO &&
+            !virDomainVirtioSerialAddrIsComplete(&chr->info) &&
+            virDomainVirtioSerialAddrAutoAssign(def, addrs, &chr->info, true) < 0)
+            goto cleanup;
+    }
+
+    for (i = 0; i < def->nchannels; i++) {
+        virDomainChrDefPtr chr = def->channels[i];
+        if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_CHANNEL &&
+            chr->targetType == VIR_DOMAIN_CHR_CHANNEL_TARGET_TYPE_VIRTIO &&
+            !virDomainVirtioSerialAddrIsComplete(&chr->info) &&
+            virDomainVirtioSerialAddrAutoAssign(def, addrs, &chr->info, false) < 0)
+            goto cleanup;
+    }
+
+    ret = 0;
+
+ cleanup:
+    virDomainVirtioSerialAddrSetFree(addrs);
+    return ret;
+}
