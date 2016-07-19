@@ -109,6 +109,7 @@ virDomainPCIAddressSetGrow;
 virDomainPCIAddressSlotInUse;
 virDomainPCIAddressValidate;
 virDomainPCIControllerModelToConnectType;
+virDomainValidateDevicePCISlotsChipsets;
 virDomainValidateDevicePCISlotsPIIX3;
 virDomainValidateDevicePCISlotsQ35;
 virDomainVirtioSerialAddrAssign;

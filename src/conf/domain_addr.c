@@ -1712,3 +1712,22 @@ virDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
     VIR_FREE(addrStr);
     return ret;
 }
+
+
+int
+virDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
+                                         virDomainPCIAddressSetPtr addrs,
+                                         bool videoPrimaryEnabled)
+{
+    if (virDomainMachineIsI440FX(def) &&
+        virDomainValidateDevicePCISlotsPIIX3(def, addrs, videoPrimaryEnabled) < 0) {
+        return -1;
+    }
+
+    if (virDomainMachineIsQ35(def) &&
+        virDomainValidateDevicePCISlotsQ35(def, addrs, videoPrimaryEnabled) < 0) {
+        return -1;
+    }
+
+    return 0;
+}
