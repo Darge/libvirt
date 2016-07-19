@@ -143,10 +143,6 @@ int virDomainPCIAddressReleaseAddr(virDomainPCIAddressSetPtr addrs,
                                    virPCIDeviceAddressPtr addr)
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
 
-int virDomainPCIAddressReleaseSlot(virDomainPCIAddressSetPtr addrs,
-                                   virPCIDeviceAddressPtr addr)
-    ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
-
 int virDomainPCIAddressGetNextSlot(virDomainPCIAddressSetPtr addrs,
                                    virPCIDeviceAddressPtr next_addr,
                                    virDomainPCIConnectFlags flags)
@@ -180,9 +176,6 @@ int virDomainCCWAddressValidate(virDomainDefPtr def,
                                 void *data)
     ATTRIBUTE_NONNULL(3) ATTRIBUTE_NONNULL(4);
 
-int virDomainCCWAddressReleaseAddr(virDomainCCWAddressSetPtr addrs,
-                                   virDomainDeviceInfoPtr dev)
-    ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
 virDomainCCWAddressSetPtr virDomainCCWAddressSetCreate(void);
 
 struct _virDomainVirtioSerialController {
@@ -234,10 +227,5 @@ virDomainVirtioSerialAddrReserve(virDomainDefPtr def,
                                  virDomainDeviceInfoPtr info,
                                  void *data)
     ATTRIBUTE_NONNULL(3) ATTRIBUTE_NONNULL(4);
-
-int
-virDomainVirtioSerialAddrRelease(virDomainVirtioSerialAddrSetPtr addrs,
-                                 virDomainDeviceInfoPtr info)
-    ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
 
 #endif /* __DOMAIN_ADDR_H__ */
