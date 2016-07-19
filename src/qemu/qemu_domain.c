@@ -1957,7 +1957,7 @@ qemuDomainDefAddDefaultDevices(virDomainDefPtr def,
     case VIR_ARCH_AARCH64:
         addDefaultUSB = false;
         addDefaultMemballoon = false;
-        if (qemuDomainMachineIsVirt(def))
+        if (virDomainMachineIsVirt(def))
             addPCIeRoot = virQEMUCapsGet(qemuCaps, QEMU_CAPS_OBJECT_GPEX);
         break;
 
@@ -2056,7 +2056,7 @@ qemuDomainDefAddDefaultDevices(virDomainDefPtr def,
          * be able to have a pure virtio-mmio topology
          */
         if (virDomainControllerFind(def, VIR_DOMAIN_CONTROLLER_TYPE_PCI, 1) < 0 &&
-            !qemuDomainMachineIsVirt(def) &&
+            !virDomainMachineIsVirt(def) &&
             !virDomainDefAddController(def, VIR_DOMAIN_CONTROLLER_TYPE_PCI, 1,
                                        VIR_DOMAIN_CONTROLLER_MODEL_DMI_TO_PCI_BRIDGE))
             goto cleanup;
@@ -2131,7 +2131,7 @@ qemuDomainDefEnableDefaultFeatures(virDomainDefPtr def,
      * was not included in the domain XML, we need to choose a suitable
      * GIC version ourselves */
     if (def->features[VIR_DOMAIN_FEATURE_GIC] == VIR_TRISTATE_SWITCH_ABSENT &&
-        qemuDomainMachineIsVirt(def)) {
+        virDomainMachineIsVirt(def)) {
 
         VIR_DEBUG("Looking for usable GIC version in domain capabilities");
         for (version = VIR_GIC_VERSION_LAST - 1;
@@ -2334,7 +2334,7 @@ qemuDomainDefaultNetModel(const virDomainDef *def,
         if (STREQ(def->os.machine, "versatilepb"))
             return "smc91c111";
 
-        if (qemuDomainMachineIsVirt(def))
+        if (virDomainMachineIsVirt(def))
             return "virtio";
 
         /* Incomplete. vexpress (and a few others) use this, but not all
@@ -5014,22 +5014,6 @@ qemuDomainMachineIsS390CCW(const virDomainDef *def)
 {
     return STRPREFIX(def->os.machine, "s390-ccw");
 }
-
-
-bool
-qemuDomainMachineIsVirt(const virDomainDef *def)
-{
-    if (def->os.arch != VIR_ARCH_ARMV7L &&
-        def->os.arch != VIR_ARCH_AARCH64)
-        return false;
-
-    if (STRNEQ(def->os.machine, "virt") &&
-        !STRPREFIX(def->os.machine, "virt-"))
-        return false;
-
-    return true;
-}
-
 
 bool
 qemuDomainMachineIsPSeries(const virDomainDef *def)

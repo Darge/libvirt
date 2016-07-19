@@ -2179,7 +2179,7 @@ bool virQEMUCapsHasPCIMultiBus(virQEMUCapsPtr qemuCaps,
     /* If 'virt' supports PCI, it supports multibus.
      * No extra conditions here for simplicity.
      */
-    if (qemuDomainMachineIsVirt(def))
+    if (virDomainMachineIsVirt(def))
         return true;
 
     return false;

@@ -97,6 +97,7 @@ virDomainCollectPCIAddress;
 virDomainGetBlkioParametersAssignFromDef;
 virDomainMachineIsI440FX;
 virDomainMachineIsQ35;
+virDomainMachineIsVirt;
 virDomainPCIAddressAsString;
 virDomainPCIAddressBusSetModel;
 virDomainPCIAddressEnsureAddr;

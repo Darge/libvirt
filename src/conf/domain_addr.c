@@ -2217,3 +2217,18 @@ virDomainAssignDevicePCISlots(virDomainDefPtr def,
  error:
     return -1;
 }
+
+
+bool
+virDomainMachineIsVirt(const virDomainDef *def)
+{
+    if (def->os.arch != VIR_ARCH_ARMV7L &&
+        def->os.arch != VIR_ARCH_AARCH64)
+        return false;
+
+    if (STRNEQ(def->os.machine, "virt") &&
+        !STRPREFIX(def->os.machine, "virt-"))
+        return false;
+
+    return true;
+}
