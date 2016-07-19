@@ -262,4 +262,24 @@ virDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
                                          bool videoPrimaryEnabled)
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
 
+int
+virDomainAddressFindNewBusNr(virDomainDefPtr def)
+    ATTRIBUTE_NONNULL(1);
+
+virDomainPCIAddressSetPtr
+virDomainPCIAddressSetCreate(virDomainDefPtr def,
+                             unsigned int nbuses,
+                             bool dryRun)
+    ATTRIBUTE_NONNULL(1);
+
+bool
+virDomainPCIBusFullyReserved(virDomainPCIAddressBusPtr bus)
+    ATTRIBUTE_NONNULL(1);
+
+int
+virDomainAssignDevicePCISlots(virDomainDefPtr def,
+                              virDomainPCIAddressSetPtr addrs,
+                              bool virtioMMIOEnabled)
+    ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
+
 #endif /* __DOMAIN_ADDR_H__ */

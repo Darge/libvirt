@@ -85,6 +85,8 @@ virPCIDeviceAddressParseXML;
 
 
 # conf/domain_addr.h
+virDomainAddressFindNewBusNr;
+virDomainAssignDevicePCISlots;
 virDomainAssignVirtioSerialAddresses;
 virDomainCCWAddressAllocate;
 virDomainCCWAddressAssign;
@@ -104,10 +106,12 @@ virDomainPCIAddressReserveAddr;
 virDomainPCIAddressReserveNextSlot;
 virDomainPCIAddressReserveSlot;
 virDomainPCIAddressSetAlloc;
+virDomainPCIAddressSetCreate;
 virDomainPCIAddressSetFree;
 virDomainPCIAddressSetGrow;
 virDomainPCIAddressSlotInUse;
 virDomainPCIAddressValidate;
+virDomainPCIBusFullyReserved;
 virDomainPCIControllerModelToConnectType;
 virDomainValidateDevicePCISlotsChipsets;
 virDomainValidateDevicePCISlotsPIIX3;
