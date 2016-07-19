@@ -560,13 +560,12 @@ qemuDomainPCIAddressSetCreate(virDomainDefPtr def,
 
 static int
 qemuDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
-                                      virQEMUCapsPtr qemuCaps,
-                                      virDomainPCIAddressSetPtr addrs)
+                                      virDomainPCIAddressSetPtr addrs,
+                                      bool videoPrimaryEnabled)
 {
     int ret = -1;
     size_t i;
     virPCIDeviceAddress tmp_addr;
-    bool qemuDeviceVideoUsable = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY);
     char *addrStr = NULL;
     virDomainPCIConnectFlags flags = (VIR_PCI_CONNECT_HOTPLUGGABLE
                                       | VIR_PCI_CONNECT_TYPE_PCI_DEVICE);
@@ -644,7 +643,7 @@ qemuDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
                 goto cleanup;
 
             if (virDomainPCIAddressSlotInUse(addrs, &tmp_addr)) {
-                if (qemuDeviceVideoUsable) {
+                if (videoPrimaryEnabled) {
                     if (virDomainPCIAddressReserveNextSlot(addrs,
                                                            &primaryVideo->info,
                                                            flags) < 0)
@@ -661,7 +660,7 @@ qemuDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
                 primaryVideo->info.addr.pci = tmp_addr;
                 primaryVideo->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI;
             }
-        } else if (!qemuDeviceVideoUsable) {
+        } else if (!videoPrimaryEnabled) {
             if (primaryVideo->info.addr.pci.domain != 0 ||
                 primaryVideo->info.addr.pci.bus != 0 ||
                 primaryVideo->info.addr.pci.slot != 2 ||
@@ -673,7 +672,7 @@ qemuDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
             /* If TYPE == PCI, then qemuDomainCollectPCIAddress() function
              * has already reserved the address, so we must skip */
         }
-    } else if (addrs->nbuses && !qemuDeviceVideoUsable) {
+    } else if (addrs->nbuses && !videoPrimaryEnabled) {
         memset(&tmp_addr, 0, sizeof(tmp_addr));
         tmp_addr.slot = 2;
 
@@ -694,13 +693,12 @@ qemuDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
 
 static int
 qemuDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
-                                    virQEMUCapsPtr qemuCaps,
-                                    virDomainPCIAddressSetPtr addrs)
+                                    virDomainPCIAddressSetPtr addrs,
+                                    bool videoPrimaryEnabled)
 {
     int ret = -1;
     size_t i;
     virPCIDeviceAddress tmp_addr;
-    bool qemuDeviceVideoUsable = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY);
     char *addrStr = NULL;
     virDomainPCIConnectFlags flags = VIR_PCI_CONNECT_TYPE_PCIE_DEVICE;
 
@@ -835,7 +833,7 @@ qemuDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
                 goto cleanup;
 
             if (virDomainPCIAddressSlotInUse(addrs, &tmp_addr)) {
-                if (qemuDeviceVideoUsable) {
+                if (videoPrimaryEnabled) {
                     if (virDomainPCIAddressReserveNextSlot(addrs,
                                                            &primaryVideo->info,
                                                            flags) < 0)
@@ -852,7 +850,7 @@ qemuDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
                 primaryVideo->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI;
                 primaryVideo->info.addr.pci = tmp_addr;
             }
-        } else if (!qemuDeviceVideoUsable) {
+        } else if (!videoPrimaryEnabled) {
             if (primaryVideo->info.addr.pci.domain != 0 ||
                 primaryVideo->info.addr.pci.bus != 0 ||
                 primaryVideo->info.addr.pci.slot != 1 ||
@@ -864,7 +862,7 @@ qemuDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
             /* If TYPE == PCI, then qemuDomainCollectPCIAddress() function
              * has already reserved the address, so we must skip */
         }
-    } else if (addrs->nbuses && !qemuDeviceVideoUsable) {
+    } else if (addrs->nbuses && !videoPrimaryEnabled) {
         memset(&tmp_addr, 0, sizeof(tmp_addr));
         tmp_addr.slot = 1;
 
@@ -886,16 +884,16 @@ qemuDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
 
 static int
 qemuDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
-                                         virQEMUCapsPtr qemuCaps,
-                                         virDomainPCIAddressSetPtr addrs)
+                                         virDomainPCIAddressSetPtr addrs,
+                                         bool videoPrimaryEnabled)
 {
     if (qemuDomainMachineIsI440FX(def) &&
-        qemuDomainValidateDevicePCISlotsPIIX3(def, qemuCaps, addrs) < 0) {
+        qemuDomainValidateDevicePCISlotsPIIX3(def, addrs, videoPrimaryEnabled) < 0) {
         return -1;
     }
 
     if (qemuDomainMachineIsQ35(def) &&
-        qemuDomainValidateDevicePCISlotsQ35(def, qemuCaps, addrs) < 0) {
+        qemuDomainValidateDevicePCISlotsQ35(def, addrs, videoPrimaryEnabled) < 0) {
         return -1;
     }
 
@@ -954,8 +952,8 @@ qemuDomainPCIBusFullyReserved(virDomainPCIAddressBusPtr bus)
  */
 static int
 qemuDomainAssignDevicePCISlots(virDomainDefPtr def,
-                               virQEMUCapsPtr qemuCaps,
-                               virDomainPCIAddressSetPtr addrs)
+                               virDomainPCIAddressSetPtr addrs,
+                               bool virtioMMIOEnabled)
 {
     size_t i, j;
     virDomainPCIConnectFlags flags = 0; /* initialize to quiet gcc warning */
@@ -1136,7 +1134,7 @@ qemuDomainAssignDevicePCISlots(virDomainDefPtr def,
         /* Also ignore virtio-mmio disks if our machine allows them */
         if (def->disks[i]->info.type ==
             VIR_DOMAIN_DEVICE_ADDRESS_TYPE_VIRTIO_MMIO &&
-            virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO))
+            virtioMMIOEnabled)
             continue;
 
         if (!virDeviceInfoPCIAddressWanted(&def->disks[i]->info)) {
@@ -1265,7 +1263,7 @@ qemuDomainAssignDevicePCISlots(virDomainDefPtr def,
 
 static bool
 qemuDomainSupportsPCI(virDomainDefPtr def,
-                      virQEMUCapsPtr qemuCaps)
+                      bool gpexEnabled)
 {
     if ((def->os.arch != VIR_ARCH_ARMV7L) && (def->os.arch != VIR_ARCH_AARCH64))
         return true;
@@ -1274,7 +1272,7 @@ qemuDomainSupportsPCI(virDomainDefPtr def,
         return true;
 
     if (qemuDomainMachineIsVirt(def) &&
-        virQEMUCapsGet(qemuCaps, QEMU_CAPS_OBJECT_GPEX))
+        gpexEnabled)
         return true;
 
     return false;
@@ -1388,7 +1386,9 @@ qemuDomainAddressFindNewBusNr(virDomainDefPtr def)
 
 virDomainPCIAddressSetPtr
 qemuDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
-                                     virQEMUCapsPtr qemuCaps)
+                                     bool virtioMMIOEnabled,
+                                     bool videoPrimaryEnabled,
+                                     bool gpexEnabled)
 {
     virDomainPCIAddressSetPtr addrs = NULL;
     int max_idx = -1;
@@ -1408,12 +1408,12 @@ qemuDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
     if (!(addrs = qemuDomainPCIAddressSetCreate(def, nbuses, false)))
         goto cleanup;
 
-    if (qemuDomainSupportsPCI(def, qemuCaps)) {
-        if (qemuDomainValidateDevicePCISlotsChipsets(def, qemuCaps,
-                                                     addrs) < 0)
+    if (qemuDomainSupportsPCI(def, gpexEnabled)) {
+        if (qemuDomainValidateDevicePCISlotsChipsets(def, addrs,
+                                             videoPrimaryEnabled) < 0)
             goto cleanup;
 
-        if (qemuDomainAssignDevicePCISlots(def, qemuCaps, addrs) < 0)
+        if (qemuDomainAssignDevicePCISlots(def, addrs, virtioMMIOEnabled) < 0)
             goto cleanup;
     }
 
@@ -1428,7 +1428,10 @@ qemuDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
 
 static int
 qemuDomainAssignPCIAddresses(virDomainDefPtr def,
-                             virQEMUCapsPtr qemuCaps)
+                             bool pciBridgeEnabled,
+                             bool virtioMMIOEnabled,
+                             bool videoPrimaryEnabled,
+                             bool gpexEnabled)
 {
     int ret = -1;
     virDomainPCIAddressSetPtr addrs = NULL;
@@ -1450,15 +1453,15 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
     nbuses = max_idx + 1;
 
     if (nbuses > 0 &&
-        virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_PCI_BRIDGE)) {
+        pciBridgeEnabled) {
         virDomainDeviceInfo info;
 
         /* 1st pass to figure out how many PCI bridges we need */
         if (!(addrs = qemuDomainPCIAddressSetCreate(def, nbuses, true)))
             goto cleanup;
 
-        if (qemuDomainValidateDevicePCISlotsChipsets(def, qemuCaps,
-                                                     addrs) < 0)
+        if (qemuDomainValidateDevicePCISlotsChipsets(def, addrs,
+                                                     videoPrimaryEnabled) < 0)
             goto cleanup;
 
         for (i = 0; i < addrs->nbuses; i++) {
@@ -1479,7 +1482,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
             virDomainPCIAddressReserveNextSlot(addrs, &info, flags) < 0)
             goto cleanup;
 
-        if (qemuDomainAssignDevicePCISlots(def, qemuCaps, addrs) < 0)
+        if (qemuDomainAssignDevicePCISlots(def, addrs, virtioMMIOEnabled) < 0)
             goto cleanup;
 
         for (i = 1; i < addrs->nbuses; i++) {
@@ -1505,10 +1508,13 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
         goto cleanup;
     }
 
-    if (!(addrs = qemuDomainPCIAddrSetCreateFromDomain(def, qemuCaps)))
+    if (!(addrs = qemuDomainPCIAddrSetCreateFromDomain(def,
+                                                       virtioMMIOEnabled,
+                                                       videoPrimaryEnabled,
+                                                       gpexEnabled)))
         goto cleanup;
 
-    if (qemuDomainSupportsPCI(def, qemuCaps)) {
+    if (qemuDomainSupportsPCI(def, gpexEnabled)) {
         for (i = 0; i < def->ncontrollers; i++) {
             virDomainControllerDefPtr cont = def->controllers[i];
             int idx = cont->idx;
@@ -1600,6 +1606,11 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
                           virDomainObjPtr obj ATTRIBUTE_UNUSED,
                           bool newDomain ATTRIBUTE_UNUSED)
 {
+    bool pciBridgeEnabled = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_PCI_BRIDGE);
+    bool virtioMMIOEnabled = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO);
+    bool videoPrimaryEnabled = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY);
+    bool gpexEnabled = virQEMUCapsGet(qemuCaps, QEMU_CAPS_OBJECT_GPEX);
+
     if (virDomainAssignVirtioSerialAddresses(def) < 0)
         return -1;
 
@@ -1611,7 +1622,8 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
 
     qemuDomainAssignARMVirtioMMIOAddresses(def, qemuCaps);
 
-    if (qemuDomainAssignPCIAddresses(def, qemuCaps) < 0)
+    if (qemuDomainAssignPCIAddresses(def, pciBridgeEnabled, virtioMMIOEnabled,
+                                     videoPrimaryEnabled, gpexEnabled) < 0)
         return -1;
 
     return 0;

@@ -335,7 +335,9 @@ qemuDomainAttachVirtioDiskDevice(virConnectPtr conn,
     } else if (!disk->info.type ||
                 disk->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI) {
         if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def,
-                                                              priv->qemuCaps)))
+                            virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO),
+                            virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY),
+                            virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_OBJECT_GPEX))))
             goto error;
         if (virDomainPCIAddressEnsureAddr(pciaddrs, &disk->info) < 0)
             goto error;
@@ -455,7 +457,9 @@ int qemuDomainAttachControllerDevice(virQEMUDriverPtr driver,
     if (controller->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE ||
         controller->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI) {
         if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def,
-                                                              priv->qemuCaps)))
+                            virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO),
+                            virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY),
+                            virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_OBJECT_GPEX))))
             goto cleanup;
         if (virDomainPCIAddressEnsureAddr(pciaddrs, &controller->info) < 0)
             goto cleanup;
@@ -973,7 +977,9 @@ qemuDomainAttachNetDevice(virQEMUDriverPtr driver,
         goto cleanup;
     } else {
         if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def,
-                                                              priv->qemuCaps)))
+                            virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO),
+                            virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY),
+                            virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_OBJECT_GPEX))))
             goto cleanup;
         if (virDomainPCIAddressEnsureAddr(pciaddrs, &net->info) < 0)
             goto cleanup;
@@ -1252,7 +1258,10 @@ qemuDomainAttachHostPCIDevice(virQEMUDriverPtr driver,
 
     if (qemuAssignDeviceHostdevAlias(vm->def, &hostdev->info->alias, -1) < 0)
         goto error;
-    if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def, priv->qemuCaps)))
+    if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def,
+                        virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO),
+                        virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY),
+                        virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_OBJECT_GPEX))))
         goto cleanup;
     if (virDomainPCIAddressEnsureAddr(pciaddrs, hostdev->info) < 0)
         goto error;
@@ -1498,7 +1507,10 @@ qemuDomainAttachChrDeviceAssignAddr(virDomainDefPtr def,
 
     } else if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_SERIAL &&
                chr->targetType == VIR_DOMAIN_CHR_SERIAL_TARGET_TYPE_PCI) {
-        if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(def, priv->qemuCaps)))
+        if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(def,
+                             virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO),
+                             virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY),
+                             virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_OBJECT_GPEX))))
             goto cleanup;
         if (virDomainPCIAddressEnsureAddr(pciaddrs, &chr->info) < 0)
             goto cleanup;
@@ -1626,7 +1638,10 @@ qemuDomainAttachRNGDevice(virQEMUDriverPtr driver,
 
     if (rng->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE ||
         rng->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI) {
-        if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def, priv->qemuCaps)))
+        if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def,
+                             virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO),
+                             virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY),
+                             virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_OBJECT_GPEX))))
             goto cleanup;
         if (virDomainPCIAddressEnsureAddr(pciaddrs, &rng->info) < 0)
             goto cleanup;
