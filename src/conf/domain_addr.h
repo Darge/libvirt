@@ -232,4 +232,10 @@ int
 virDomainAssignVirtioSerialAddresses(virDomainDefPtr def)
     ATTRIBUTE_NONNULL(1);
 
+int
+virDomainCollectPCIAddress(virDomainDefPtr def,
+                           virDomainDeviceDefPtr device,
+                           virDomainDeviceInfoPtr info,
+                           void *opaque);
+
 #endif /* __DOMAIN_ADDR_H__ */

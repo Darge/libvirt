@@ -91,6 +91,7 @@ virDomainCCWAddressAssign;
 virDomainCCWAddressSetCreate;
 virDomainCCWAddressSetFree;
 virDomainCCWAddressValidate;
+virDomainCollectPCIAddress;
 virDomainGetBlkioParametersAssignFromDef;
 virDomainPCIAddressAsString;
 virDomainPCIAddressBusSetModel;
