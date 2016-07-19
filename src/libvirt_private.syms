@@ -110,6 +110,7 @@ virDomainPCIAddressSlotInUse;
 virDomainPCIAddressValidate;
 virDomainPCIControllerModelToConnectType;
 virDomainValidateDevicePCISlotsPIIX3;
+virDomainValidateDevicePCISlotsQ35;
 virDomainVirtioSerialAddrAssign;
 virDomainVirtioSerialAddrAutoAssign;
 virDomainVirtioSerialAddrIsComplete;

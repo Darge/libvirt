@@ -250,6 +250,12 @@ virDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
                                       bool videoPrimaryEnabled)
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
 
+int
+virDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
+                                    virDomainPCIAddressSetPtr addrs,
+                                    bool videoPrimaryEnabled)
+    ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
+
 
 
 #endif /* __DOMAIN_ADDR_H__ */
