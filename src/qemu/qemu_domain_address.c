@@ -418,25 +418,6 @@ qemuDomainPCIAddressSetCreate(virDomainDefPtr def,
 }
 
 
-static int
-qemuDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
-                                         virDomainPCIAddressSetPtr addrs,
-                                         bool videoPrimaryEnabled)
-{
-    if (virDomainMachineIsI440FX(def) &&
-        virDomainValidateDevicePCISlotsPIIX3(def, addrs, videoPrimaryEnabled) < 0) {
-        return -1;
-    }
-
-    if (virDomainMachineIsQ35(def) &&
-        virDomainValidateDevicePCISlotsQ35(def, addrs, videoPrimaryEnabled) < 0) {
-        return -1;
-    }
-
-    return 0;
-}
-
-
 static bool
 qemuDomainPCIBusFullyReserved(virDomainPCIAddressBusPtr bus)
 {
@@ -945,7 +926,7 @@ qemuDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
         goto cleanup;
 
     if (qemuDomainSupportsPCI(def, gpexEnabled)) {
-        if (qemuDomainValidateDevicePCISlotsChipsets(def, addrs,
+        if (virDomainValidateDevicePCISlotsChipsets(def, addrs,
                                              videoPrimaryEnabled) < 0)
             goto cleanup;
 
@@ -996,7 +977,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
         if (!(addrs = qemuDomainPCIAddressSetCreate(def, nbuses, true)))
             goto cleanup;
 
-        if (qemuDomainValidateDevicePCISlotsChipsets(def, addrs,
+        if (virDomainValidateDevicePCISlotsChipsets(def, addrs,
                                                      videoPrimaryEnabled) < 0)
             goto cleanup;
 
