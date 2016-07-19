@@ -282,4 +282,7 @@ virDomainAssignDevicePCISlots(virDomainDefPtr def,
                               bool virtioMMIOEnabled)
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
 
+bool
+virDomainMachineIsVirt(const virDomainDef *def);
+
 #endif /* __DOMAIN_ADDR_H__ */

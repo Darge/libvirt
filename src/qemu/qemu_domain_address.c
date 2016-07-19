@@ -350,7 +350,7 @@ qemuDomainAssignARMVirtioMMIOAddresses(virDomainDefPtr def,
         return;
 
     if (!(STRPREFIX(def->os.machine, "vexpress-") ||
-          qemuDomainMachineIsVirt(def)))
+          virDomainMachineIsVirt(def)))
         return;
 
     if (virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO)) {
@@ -370,7 +370,7 @@ qemuDomainSupportsPCI(virDomainDefPtr def,
     if (STREQ(def->os.machine, "versatilepb"))
         return true;
 
-    if (qemuDomainMachineIsVirt(def) &&
+    if (virDomainMachineIsVirt(def) &&
         gpexEnabled)
         return true;
 
@@ -509,7 +509,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
          * a dmi-to-pci-bridge to an otherwise PCI-free topology
          */
         if (!buses_reserved &&
-            !qemuDomainMachineIsVirt(def) &&
+            !virDomainMachineIsVirt(def) &&
             virDomainPCIAddressReserveNextSlot(addrs, &info, flags) < 0)
             goto cleanup;
 

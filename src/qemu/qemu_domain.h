@@ -624,7 +624,6 @@ virDomainChrDefPtr qemuFindAgentConfig(virDomainDefPtr def);
 
 bool qemuDomainMachineNeedsFDC(const virDomainDef *def);
 bool qemuDomainMachineIsS390CCW(const virDomainDef *def);
-bool qemuDomainMachineIsVirt(const virDomainDef *def);
 bool qemuDomainMachineIsPSeries(const virDomainDef *def);
 bool qemuDomainMachineHasBuiltinIDE(const virDomainDef *def);
 
