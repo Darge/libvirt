@@ -747,12 +747,12 @@ qemuDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
                                          virDomainPCIAddressSetPtr addrs,
                                          bool videoPrimaryEnabled)
 {
-    if (qemuDomainMachineIsI440FX(def) &&
+    if (virDomainMachineIsI440FX(def) &&
         qemuDomainValidateDevicePCISlotsPIIX3(def, addrs, videoPrimaryEnabled) < 0) {
         return -1;
     }
 
-    if (qemuDomainMachineIsQ35(def) &&
+    if (virDomainMachineIsQ35(def) &&
         qemuDomainValidateDevicePCISlotsQ35(def, addrs, videoPrimaryEnabled) < 0) {
         return -1;
     }

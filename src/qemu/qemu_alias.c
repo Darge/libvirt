@@ -157,7 +157,7 @@ qemuAssignDeviceControllerAlias(virDomainDefPtr domainDef,
         /* for any Q35 machine, the first SATA controller is the
          * integrated one, and it too is hardcoded with id "ide"
          */
-        if (qemuDomainMachineIsQ35(domainDef) && controller->idx == 0)
+        if (virDomainMachineIsQ35(domainDef) && controller->idx == 0)
             return VIR_STRDUP(controller->info.alias, "ide");
     } else if (controller->type == VIR_DOMAIN_CONTROLLER_TYPE_USB) {
         /* first USB device is "usb", others are normal "usb%d" */

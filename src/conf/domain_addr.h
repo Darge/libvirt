@@ -238,4 +238,12 @@ virDomainCollectPCIAddress(virDomainDefPtr def,
                            virDomainDeviceInfoPtr info,
                            void *opaque);
 
+bool
+virDomainMachineIsQ35(const virDomainDef *def);
+
+bool
+virDomainMachineIsI440FX(const virDomainDef *def);
+
+
+
 #endif /* __DOMAIN_ADDR_H__ */

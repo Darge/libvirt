@@ -93,6 +93,8 @@ virDomainCCWAddressSetFree;
 virDomainCCWAddressValidate;
 virDomainCollectPCIAddress;
 virDomainGetBlkioParametersAssignFromDef;
+virDomainMachineIsI440FX;
+virDomainMachineIsQ35;
 virDomainPCIAddressAsString;
 virDomainPCIAddressBusSetModel;
 virDomainPCIAddressEnsureAddr;
