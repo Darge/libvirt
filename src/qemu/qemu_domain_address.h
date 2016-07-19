@@ -41,12 +41,6 @@ virDomainCCWAddressSetPtr
 qemuDomainCCWAddrSetCreateFromDomain(virDomainDefPtr def)
     ATTRIBUTE_NONNULL(1);
 
-virDomainPCIAddressSetPtr
-qemuDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
-                                     bool virtioMMIOEnabled,
-                                     bool videoPrimaryEnabled,
-                                     bool gpexEnabled)
-    ATTRIBUTE_NONNULL(1);
 
 # define __QEMU_DOMAIN_ADDRESS_H__
 
