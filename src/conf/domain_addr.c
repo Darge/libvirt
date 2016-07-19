@@ -2293,3 +2293,215 @@ virDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
 
     return ret;
 }
+
+
+void
+virDomainPCIControllerSetDefaultModelName(virDomainControllerDefPtr cont)
+{
+    int *modelName = &cont->opts.pciopts.modelName;
+
+    /* make sure it's not already set */
+    if (*modelName != VIR_DOMAIN_CONTROLLER_PCI_MODEL_NAME_NONE)
+        return;
+    switch ((virDomainControllerModelPCI)cont->model) {
+    case VIR_DOMAIN_CONTROLLER_MODEL_PCI_BRIDGE:
+        *modelName = VIR_DOMAIN_CONTROLLER_PCI_MODEL_NAME_PCI_BRIDGE;
+        break;
+    case VIR_DOMAIN_CONTROLLER_MODEL_DMI_TO_PCI_BRIDGE:
+        *modelName = VIR_DOMAIN_CONTROLLER_PCI_MODEL_NAME_I82801B11_BRIDGE;
+        break;
+    case VIR_DOMAIN_CONTROLLER_MODEL_PCIE_ROOT_PORT:
+        *modelName = VIR_DOMAIN_CONTROLLER_PCI_MODEL_NAME_IOH3420;
+        break;
+    case VIR_DOMAIN_CONTROLLER_MODEL_PCIE_SWITCH_UPSTREAM_PORT:
+        *modelName = VIR_DOMAIN_CONTROLLER_PCI_MODEL_NAME_X3130_UPSTREAM;
+        break;
+    case VIR_DOMAIN_CONTROLLER_MODEL_PCIE_SWITCH_DOWNSTREAM_PORT:
+        *modelName = VIR_DOMAIN_CONTROLLER_PCI_MODEL_NAME_XIO3130_DOWNSTREAM;
+        break;
+    case VIR_DOMAIN_CONTROLLER_MODEL_PCI_EXPANDER_BUS:
+        *modelName = VIR_DOMAIN_CONTROLLER_PCI_MODEL_NAME_PXB;
+        break;
+    case VIR_DOMAIN_CONTROLLER_MODEL_PCIE_EXPANDER_BUS:
+        *modelName = VIR_DOMAIN_CONTROLLER_PCI_MODEL_NAME_PXB_PCIE;
+        break;
+    case VIR_DOMAIN_CONTROLLER_MODEL_PCI_ROOT:
+    case VIR_DOMAIN_CONTROLLER_MODEL_PCIE_ROOT:
+    case VIR_DOMAIN_CONTROLLER_MODEL_PCI_LAST:
+        break;
+    }
+}
+
+
+int
+virDomainAssignPCIAddresses(virDomainDefPtr def,
+                            bool pciBridgeEnabled,
+                            bool virtioMMIOEnabled,
+                            bool videoPrimaryEnabled,
+                            bool gpexEnabled)
+{
+    int ret = -1;
+    virDomainPCIAddressSetPtr addrs = NULL;
+    int max_idx = -1;
+    int nbuses = 0;
+    size_t i;
+    int rv;
+    bool buses_reserved = true;
+
+    virDomainPCIConnectFlags flags = VIR_PCI_CONNECT_TYPE_PCI_DEVICE;
+
+    for (i = 0; i < def->ncontrollers; i++) {
+        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_PCI) {
+            if ((int) def->controllers[i]->idx > max_idx)
+                max_idx = def->controllers[i]->idx;
+        }
+    }
+
+    nbuses = max_idx + 1;
+
+    if (nbuses > 0 &&
+        pciBridgeEnabled) {
+        virDomainDeviceInfo info;
+
+        /* 1st pass to figure out how many PCI bridges we need */
+        if (!(addrs = virDomainPCIAddressSetCreate(def, nbuses, true)))
+            goto cleanup;
+
+        if (virDomainValidateDevicePCISlotsChipsets(def, addrs,
+                                                     videoPrimaryEnabled) < 0)
+            goto cleanup;
+
+        for (i = 0; i < addrs->nbuses; i++) {
+            if (!virDomainPCIBusFullyReserved(&addrs->buses[i]))
+                buses_reserved = false;
+        }
+
+        /* Reserve 1 extra slot for a (potential) bridge only if buses
+         * are not fully reserved yet.
+         *
+         * We don't reserve the extra slot for aarch64 mach-virt guests
+         * either because we want to be able to have pure virtio-mmio
+         * guests, and reserving this slot would force us to add at least
+         * a dmi-to-pci-bridge to an otherwise PCI-free topology
+         */
+        if (!buses_reserved &&
+            !virDomainMachineIsVirt(def) &&
+            virDomainPCIAddressReserveNextSlot(addrs, &info, flags) < 0)
+            goto cleanup;
+
+        if (virDomainAssignDevicePCISlots(def, addrs, virtioMMIOEnabled) < 0)
+            goto cleanup;
+
+        for (i = 1; i < addrs->nbuses; i++) {
+            virDomainPCIAddressBusPtr bus = &addrs->buses[i];
+
+            if ((rv = virDomainDefMaybeAddController(
+                     def, VIR_DOMAIN_CONTROLLER_TYPE_PCI,
+                     i, bus->model)) < 0)
+                goto cleanup;
+            /* If we added a new bridge, we will need one more address */
+            if (rv > 0 &&
+                virDomainPCIAddressReserveNextSlot(addrs, &info, flags) < 0)
+                goto cleanup;
+        }
+        nbuses = addrs->nbuses;
+        virDomainPCIAddressSetFree(addrs);
+        addrs = NULL;
+
+    } else if (max_idx > 0) {
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED, "%s",
+                       _("PCI bridges are not supported "
+                         "by this QEMU binary"));
+        goto cleanup;
+    }
+
+    if (!(addrs = virDomainPCIAddrSetCreateFromDomain(def,
+                                                       virtioMMIOEnabled,
+                                                       videoPrimaryEnabled,
+                                                       gpexEnabled)))
+        goto cleanup;
+
+    if (virDomainSupportsPCI(def, gpexEnabled)) {
+        for (i = 0; i < def->ncontrollers; i++) {
+            virDomainControllerDefPtr cont = def->controllers[i];
+            int idx = cont->idx;
+            virPCIDeviceAddressPtr addr;
+            virDomainPCIControllerOptsPtr options;
+
+            if (cont->type != VIR_DOMAIN_CONTROLLER_TYPE_PCI)
+                continue;
+
+            addr = &cont->info.addr.pci;
+            options = &cont->opts.pciopts;
+
+            /* set default model name (the actual name of the
+             * device in qemu) for any controller that doesn't yet
+             * have it set.
+             */
+            virDomainPCIControllerSetDefaultModelName(cont);
+
+            /* set defaults for any other auto-generated config
+             * options for this controller that haven't been
+             * specified in config.
+             */
+            switch ((virDomainControllerModelPCI)cont->model) {
+            case VIR_DOMAIN_CONTROLLER_MODEL_PCI_BRIDGE:
+                if (options->chassisNr == -1)
+                    options->chassisNr = cont->idx;
+                break;
+            case VIR_DOMAIN_CONTROLLER_MODEL_PCIE_ROOT_PORT:
+                if (options->chassis == -1)
+                   options->chassis = cont->idx;
+                if (options->port == -1)
+                   options->port = (addr->slot << 3) + addr->function;
+                break;
+            case VIR_DOMAIN_CONTROLLER_MODEL_PCIE_SWITCH_DOWNSTREAM_PORT:
+                if (options->chassis == -1)
+                   options->chassis = cont->idx;
+                if (options->port == -1)
+                   options->port = addr->slot;
+                break;
+            case VIR_DOMAIN_CONTROLLER_MODEL_PCI_EXPANDER_BUS:
+            case VIR_DOMAIN_CONTROLLER_MODEL_PCIE_EXPANDER_BUS:
+                if (options->busNr == -1)
+                    options->busNr = virDomainAddressFindNewBusNr(def);
+                if (options->busNr == -1) {
+                    virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                                   _("No free busNr lower than current "
+                                     "lowest busNr is available to "
+                                     "auto-assign to bus %d. Must be "
+                                     "manually assigned"),
+                                   addr->bus);
+                    goto cleanup;
+                }
+                break;
+            case VIR_DOMAIN_CONTROLLER_MODEL_DMI_TO_PCI_BRIDGE:
+            case VIR_DOMAIN_CONTROLLER_MODEL_PCIE_SWITCH_UPSTREAM_PORT:
+            case VIR_DOMAIN_CONTROLLER_MODEL_PCI_ROOT:
+            case VIR_DOMAIN_CONTROLLER_MODEL_PCIE_ROOT:
+            case VIR_DOMAIN_CONTROLLER_MODEL_PCI_LAST:
+                break;
+            }
+
+            /* check if every PCI bridge controller's index is larger than
+             * the bus it is placed onto
+             */
+            if (cont->model == VIR_DOMAIN_CONTROLLER_MODEL_PCI_BRIDGE &&
+                idx <= addr->bus) {
+                virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                               _("PCI controller at index %d (0x%02x) has "
+                                 "bus='0x%02x', but index must be "
+                                 "larger than bus"),
+                               idx, idx, addr->bus);
+                goto cleanup;
+            }
+        }
+    }
+
+    ret = 0;
+
+ cleanup:
+    virDomainPCIAddressSetFree(addrs);
+
+    return ret;
+}

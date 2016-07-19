@@ -297,4 +297,16 @@ virDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
                                      bool gpexEnabled)
     ATTRIBUTE_NONNULL(1);
 
+int
+virDomainAssignPCIAddresses(virDomainDefPtr def,
+                            bool pciBridgeEnabled,
+                            bool virtioMMIOEnabled,
+                            bool videoPrimaryEnabled,
+                            bool gpexEnabled)
+    ATTRIBUTE_NONNULL(1);
+
+void
+virDomainPCIControllerSetDefaultModelName(virDomainControllerDefPtr cont)
+    ATTRIBUTE_NONNULL(1);
+
 #endif /* __DOMAIN_ADDR_H__ */
