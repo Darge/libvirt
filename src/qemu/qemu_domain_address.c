@@ -106,44 +106,6 @@ qemuDomainSetSCSIControllerModel(const virDomainDef *def,
 
 
 static int
-qemuDomainAssignVirtioSerialAddresses(virDomainDefPtr def)
-{
-    int ret = -1;
-    size_t i;
-    virDomainVirtioSerialAddrSetPtr addrs = NULL;
-
-    if (!(addrs = virDomainVirtioSerialAddrSetCreateFromDomain(def)))
-        goto cleanup;
-
-    VIR_DEBUG("Finished reserving existing ports");
-
-    for (i = 0; i < def->nconsoles; i++) {
-        virDomainChrDefPtr chr = def->consoles[i];
-        if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_CONSOLE &&
-            chr->targetType == VIR_DOMAIN_CHR_CONSOLE_TARGET_TYPE_VIRTIO &&
-            !virDomainVirtioSerialAddrIsComplete(&chr->info) &&
-            virDomainVirtioSerialAddrAutoAssign(def, addrs, &chr->info, true) < 0)
-            goto cleanup;
-    }
-
-    for (i = 0; i < def->nchannels; i++) {
-        virDomainChrDefPtr chr = def->channels[i];
-        if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_CHANNEL &&
-            chr->targetType == VIR_DOMAIN_CHR_CHANNEL_TARGET_TYPE_VIRTIO &&
-            !virDomainVirtioSerialAddrIsComplete(&chr->info) &&
-            virDomainVirtioSerialAddrAutoAssign(def, addrs, &chr->info, false) < 0)
-            goto cleanup;
-    }
-
-    ret = 0;
-
- cleanup:
-    virDomainVirtioSerialAddrSetFree(addrs);
-    return ret;
-}
-
-
-static int
 qemuDomainSpaprVIOFindByReg(virDomainDefPtr def ATTRIBUTE_UNUSED,
                             virDomainDeviceDefPtr device ATTRIBUTE_UNUSED,
                             virDomainDeviceInfoPtr info, void *opaque)
@@ -1638,7 +1600,7 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
                           virDomainObjPtr obj ATTRIBUTE_UNUSED,
                           bool newDomain ATTRIBUTE_UNUSED)
 {
-    if (qemuDomainAssignVirtioSerialAddresses(def) < 0)
+    if (virDomainAssignVirtioSerialAddresses(def) < 0)
         return -1;
 
     if (qemuDomainAssignSpaprVIOAddresses(def, qemuCaps) < 0)

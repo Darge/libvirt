@@ -228,4 +228,8 @@ virDomainVirtioSerialAddrReserve(virDomainDefPtr def,
                                  void *data)
     ATTRIBUTE_NONNULL(3) ATTRIBUTE_NONNULL(4);
 
+int
+virDomainAssignVirtioSerialAddresses(virDomainDefPtr def)
+    ATTRIBUTE_NONNULL(1);
+
 #endif /* __DOMAIN_ADDR_H__ */

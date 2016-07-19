@@ -85,6 +85,7 @@ virPCIDeviceAddressParseXML;
 
 
 # conf/domain_addr.h
+virDomainAssignVirtioSerialAddresses;
 virDomainCCWAddressAllocate;
 virDomainCCWAddressAssign;
 virDomainCCWAddressSetCreate;
