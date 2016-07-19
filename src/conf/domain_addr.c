@@ -2232,3 +2232,21 @@ virDomainMachineIsVirt(const virDomainDef *def)
 
     return true;
 }
+
+
+bool
+virDomainSupportsPCI(virDomainDefPtr def,
+                     bool gpexEnabled)
+{
+    if ((def->os.arch != VIR_ARCH_ARMV7L) && (def->os.arch != VIR_ARCH_AARCH64))
+        return true;
+
+    if (STREQ(def->os.machine, "versatilepb"))
+        return true;
+
+    if (virDomainMachineIsVirt(def) &&
+        gpexEnabled)
+        return true;
+
+    return false;
+}

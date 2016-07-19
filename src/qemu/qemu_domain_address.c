@@ -360,24 +360,6 @@ qemuDomainAssignARMVirtioMMIOAddresses(virDomainDefPtr def,
 }
 
 
-static bool
-qemuDomainSupportsPCI(virDomainDefPtr def,
-                      bool gpexEnabled)
-{
-    if ((def->os.arch != VIR_ARCH_ARMV7L) && (def->os.arch != VIR_ARCH_AARCH64))
-        return true;
-
-    if (STREQ(def->os.machine, "versatilepb"))
-        return true;
-
-    if (virDomainMachineIsVirt(def) &&
-        gpexEnabled)
-        return true;
-
-    return false;
-}
-
-
 static void
 qemuDomainPCIControllerSetDefaultModelName(virDomainControllerDefPtr cont)
 {
@@ -439,7 +421,7 @@ qemuDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
     if (!(addrs = virDomainPCIAddressSetCreate(def, nbuses, false)))
         goto cleanup;
 
-    if (qemuDomainSupportsPCI(def, gpexEnabled)) {
+    if (virDomainSupportsPCI(def, gpexEnabled)) {
         if (virDomainValidateDevicePCISlotsChipsets(def, addrs,
                                              videoPrimaryEnabled) < 0)
             goto cleanup;
@@ -545,7 +527,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
                                                        gpexEnabled)))
         goto cleanup;
 
-    if (qemuDomainSupportsPCI(def, gpexEnabled)) {
+    if (virDomainSupportsPCI(def, gpexEnabled)) {
         for (i = 0; i < def->ncontrollers; i++) {
             virDomainControllerDefPtr cont = def->controllers[i];
             int idx = cont->idx;

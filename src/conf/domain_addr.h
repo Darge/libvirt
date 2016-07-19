@@ -285,4 +285,9 @@ virDomainAssignDevicePCISlots(virDomainDefPtr def,
 bool
 virDomainMachineIsVirt(const virDomainDef *def);
 
+bool
+virDomainSupportsPCI(virDomainDefPtr def,
+                     bool gpexEnabled)
+    ATTRIBUTE_NONNULL(1);
+
 #endif /* __DOMAIN_ADDR_H__ */
