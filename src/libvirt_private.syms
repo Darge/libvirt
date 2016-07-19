@@ -112,6 +112,7 @@ virDomainPCIAddressSetFree;
 virDomainPCIAddressSetGrow;
 virDomainPCIAddressSlotInUse;
 virDomainPCIAddressValidate;
+virDomainPCIAddrSetCreateFromDomain;
 virDomainPCIBusFullyReserved;
 virDomainPCIControllerModelToConnectType;
 virDomainSupportsPCI;

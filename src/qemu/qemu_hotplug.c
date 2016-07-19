@@ -334,7 +334,7 @@ qemuDomainAttachVirtioDiskDevice(virConnectPtr conn,
             goto error;
     } else if (!disk->info.type ||
                 disk->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI) {
-        if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def,
+        if (!(pciaddrs = virDomainPCIAddrSetCreateFromDomain(vm->def,
                             virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO),
                             virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY),
                             virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_OBJECT_GPEX))))
@@ -456,7 +456,7 @@ int qemuDomainAttachControllerDevice(virQEMUDriverPtr driver,
 
     if (controller->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE ||
         controller->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI) {
-        if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def,
+        if (!(pciaddrs = virDomainPCIAddrSetCreateFromDomain(vm->def,
                             virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO),
                             virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY),
                             virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_OBJECT_GPEX))))
@@ -976,7 +976,7 @@ qemuDomainAttachNetDevice(virQEMUDriverPtr driver,
                        _("virtio-s390 net device cannot be hotplugged."));
         goto cleanup;
     } else {
-        if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def,
+        if (!(pciaddrs = virDomainPCIAddrSetCreateFromDomain(vm->def,
                             virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO),
                             virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY),
                             virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_OBJECT_GPEX))))
@@ -1258,7 +1258,7 @@ qemuDomainAttachHostPCIDevice(virQEMUDriverPtr driver,
 
     if (qemuAssignDeviceHostdevAlias(vm->def, &hostdev->info->alias, -1) < 0)
         goto error;
-    if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def,
+    if (!(pciaddrs = virDomainPCIAddrSetCreateFromDomain(vm->def,
                         virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO),
                         virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY),
                         virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_OBJECT_GPEX))))
@@ -1507,7 +1507,7 @@ qemuDomainAttachChrDeviceAssignAddr(virDomainDefPtr def,
 
     } else if (chr->deviceType == VIR_DOMAIN_CHR_DEVICE_TYPE_SERIAL &&
                chr->targetType == VIR_DOMAIN_CHR_SERIAL_TARGET_TYPE_PCI) {
-        if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(def,
+        if (!(pciaddrs = virDomainPCIAddrSetCreateFromDomain(def,
                              virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO),
                              virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY),
                              virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_OBJECT_GPEX))))
@@ -1638,7 +1638,7 @@ qemuDomainAttachRNGDevice(virQEMUDriverPtr driver,
 
     if (rng->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE ||
         rng->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI) {
-        if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def,
+        if (!(pciaddrs = virDomainPCIAddrSetCreateFromDomain(vm->def,
                              virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIRTIO_MMIO),
                              virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY),
                              virQEMUCapsGet(priv->qemuCaps, QEMU_CAPS_OBJECT_GPEX))))

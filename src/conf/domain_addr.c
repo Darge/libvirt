@@ -2250,3 +2250,46 @@ virDomainSupportsPCI(virDomainDefPtr def,
 
     return false;
 }
+
+
+virDomainPCIAddressSetPtr
+virDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
+                                     bool virtioMMIOEnabled,
+                                     bool videoPrimaryEnabled,
+                                     bool gpexEnabled)
+{
+    virDomainPCIAddressSetPtr addrs = NULL;
+    int max_idx = -1;
+    int nbuses = 0;
+    virDomainPCIAddressSetPtr ret = NULL;
+    size_t i;
+
+    for (i = 0; i < def->ncontrollers; i++) {
+        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_PCI) {
+            if ((int) def->controllers[i]->idx > max_idx)
+                max_idx = def->controllers[i]->idx;
+        }
+    }
+
+    nbuses = max_idx + 1;
+
+    if (!(addrs = virDomainPCIAddressSetCreate(def, nbuses, false)))
+        goto cleanup;
+
+    if (virDomainSupportsPCI(def, gpexEnabled)) {
+        if (virDomainValidateDevicePCISlotsChipsets(def, addrs,
+                                             videoPrimaryEnabled) < 0)
+            goto cleanup;
+
+        if (virDomainAssignDevicePCISlots(def, addrs, virtioMMIOEnabled) < 0)
+            goto cleanup;
+    }
+
+    ret = addrs;
+    addrs = NULL;
+
+ cleanup:
+    virDomainPCIAddressSetFree(addrs);
+
+    return ret;
+}

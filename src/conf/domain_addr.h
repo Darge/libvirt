@@ -290,4 +290,11 @@ virDomainSupportsPCI(virDomainDefPtr def,
                      bool gpexEnabled)
     ATTRIBUTE_NONNULL(1);
 
+virDomainPCIAddressSetPtr
+virDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
+                                     bool virtioMMIOEnabled,
+                                     bool videoPrimaryEnabled,
+                                     bool gpexEnabled)
+    ATTRIBUTE_NONNULL(1);
+
 #endif /* __DOMAIN_ADDR_H__ */
