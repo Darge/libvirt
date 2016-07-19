@@ -232,63 +232,14 @@ int
 virDomainAssignVirtioSerialAddresses(virDomainDefPtr def)
     ATTRIBUTE_NONNULL(1);
 
-int
-virDomainCollectPCIAddress(virDomainDefPtr def,
-                           virDomainDeviceDefPtr device,
-                           virDomainDeviceInfoPtr info,
-                           void *opaque);
-
 bool
 virDomainMachineIsQ35(const virDomainDef *def);
 
 bool
 virDomainMachineIsI440FX(const virDomainDef *def);
 
-int
-virDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
-                                      virDomainPCIAddressSetPtr addrs,
-                                      bool videoPrimaryEnabled)
-    ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
-
-int
-virDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
-                                    virDomainPCIAddressSetPtr addrs,
-                                    bool videoPrimaryEnabled)
-    ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
-
-int
-virDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
-                                         virDomainPCIAddressSetPtr addrs,
-                                         bool videoPrimaryEnabled)
-    ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
-
-int
-virDomainAddressFindNewBusNr(virDomainDefPtr def)
-    ATTRIBUTE_NONNULL(1);
-
-virDomainPCIAddressSetPtr
-virDomainPCIAddressSetCreate(virDomainDefPtr def,
-                             unsigned int nbuses,
-                             bool dryRun)
-    ATTRIBUTE_NONNULL(1);
-
-bool
-virDomainPCIBusFullyReserved(virDomainPCIAddressBusPtr bus)
-    ATTRIBUTE_NONNULL(1);
-
-int
-virDomainAssignDevicePCISlots(virDomainDefPtr def,
-                              virDomainPCIAddressSetPtr addrs,
-                              bool virtioMMIOEnabled)
-    ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
-
 bool
 virDomainMachineIsVirt(const virDomainDef *def);
-
-bool
-virDomainSupportsPCI(virDomainDefPtr def,
-                     bool gpexEnabled)
-    ATTRIBUTE_NONNULL(1);
 
 virDomainPCIAddressSetPtr
 virDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
@@ -303,10 +254,6 @@ virDomainAssignPCIAddresses(virDomainDefPtr def,
                             bool virtioMMIOEnabled,
                             bool videoPrimaryEnabled,
                             bool gpexEnabled)
-    ATTRIBUTE_NONNULL(1);
-
-void
-virDomainPCIControllerSetDefaultModelName(virDomainControllerDefPtr cont)
     ATTRIBUTE_NONNULL(1);
 
 #endif /* __DOMAIN_ADDR_H__ */

@@ -1230,7 +1230,7 @@ virDomainAssignVirtioSerialAddresses(virDomainDefPtr def)
 }
 
 
-int
+static int
 virDomainCollectPCIAddress(virDomainDefPtr def ATTRIBUTE_UNUSED,
                            virDomainDeviceDefPtr device,
                            virDomainDeviceInfoPtr info,
@@ -1390,7 +1390,7 @@ virDomainMachineIsI440FX(const virDomainDef *def)
 }
 
 
-int
+static int
 virDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
                                       virDomainPCIAddressSetPtr addrs,
                                       bool videoPrimaryEnabled)
@@ -1523,7 +1523,7 @@ virDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
 }
 
 
-int
+static int
 virDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
                                     virDomainPCIAddressSetPtr addrs,
                                     bool videoPrimaryEnabled)
@@ -1714,7 +1714,7 @@ virDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
 }
 
 
-int
+static int
 virDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
                                          virDomainPCIAddressSetPtr addrs,
                                          bool videoPrimaryEnabled)
@@ -1733,7 +1733,7 @@ virDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
 }
 
 
-int
+static int
 virDomainAddressFindNewBusNr(virDomainDefPtr def)
 {
 /* Try to find a nice default for busNr for a new pci-expander-bus.
@@ -1801,7 +1801,7 @@ virDomainAddressFindNewBusNr(virDomainDefPtr def)
 }
 
 
-virDomainPCIAddressSetPtr
+static virDomainPCIAddressSetPtr
 virDomainPCIAddressSetCreate(virDomainDefPtr def,
                              unsigned int nbuses,
                              bool dryRun)
@@ -1859,7 +1859,7 @@ virDomainPCIAddressSetCreate(virDomainDefPtr def,
 }
 
 
-bool
+static bool
 virDomainPCIBusFullyReserved(virDomainPCIAddressBusPtr bus)
 {
     size_t i;
@@ -1908,7 +1908,7 @@ virDomainPCIBusFullyReserved(virDomainPCIAddressBusPtr bus)
  * function must only try to reserve addresses if info.type == NONE and
  * skip over info.type == PCI
  */
-int
+static int
 virDomainAssignDevicePCISlots(virDomainDefPtr def,
                               virDomainPCIAddressSetPtr addrs,
                               bool virtioMMIOEnabled)
@@ -2234,7 +2234,7 @@ virDomainMachineIsVirt(const virDomainDef *def)
 }
 
 
-bool
+static bool
 virDomainSupportsPCI(virDomainDefPtr def,
                      bool gpexEnabled)
 {
@@ -2295,7 +2295,7 @@ virDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
 }
 
 
-void
+static void
 virDomainPCIControllerSetDefaultModelName(virDomainControllerDefPtr cont)
 {
     int *modelName = &cont->opts.pciopts.modelName;

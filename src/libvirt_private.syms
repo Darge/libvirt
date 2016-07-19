@@ -85,8 +85,6 @@ virPCIDeviceAddressParseXML;
 
 
 # conf/domain_addr.h
-virDomainAddressFindNewBusNr;
-virDomainAssignDevicePCISlots;
 virDomainAssignPCIAddresses;
 virDomainAssignVirtioSerialAddresses;
 virDomainCCWAddressAllocate;
@@ -94,7 +92,6 @@ virDomainCCWAddressAssign;
 virDomainCCWAddressSetCreate;
 virDomainCCWAddressSetFree;
 virDomainCCWAddressValidate;
-virDomainCollectPCIAddress;
 virDomainGetBlkioParametersAssignFromDef;
 virDomainMachineIsI440FX;
 virDomainMachineIsQ35;
@@ -108,19 +105,12 @@ virDomainPCIAddressReserveAddr;
 virDomainPCIAddressReserveNextSlot;
 virDomainPCIAddressReserveSlot;
 virDomainPCIAddressSetAlloc;
-virDomainPCIAddressSetCreate;
 virDomainPCIAddressSetFree;
 virDomainPCIAddressSetGrow;
 virDomainPCIAddressSlotInUse;
 virDomainPCIAddressValidate;
 virDomainPCIAddrSetCreateFromDomain;
-virDomainPCIBusFullyReserved;
 virDomainPCIControllerModelToConnectType;
-virDomainPCIControllerSetDefaultModelName;
-virDomainSupportsPCI;
-virDomainValidateDevicePCISlotsChipsets;
-virDomainValidateDevicePCISlotsPIIX3;
-virDomainValidateDevicePCISlotsQ35;
 virDomainVirtioSerialAddrAssign;
 virDomainVirtioSerialAddrAutoAssign;
 virDomainVirtioSerialAddrIsComplete;
