@@ -1369,3 +1369,22 @@ virDomainCollectPCIAddress(virDomainDefPtr def ATTRIBUTE_UNUSED,
  cleanup:
     return ret;
 }
+
+
+bool
+virDomainMachineIsQ35(const virDomainDef *def)
+{
+    return (STRPREFIX(def->os.machine, "pc-q35") ||
+            STREQ(def->os.machine, "q35"));
+}
+
+
+bool
+virDomainMachineIsI440FX(const virDomainDef *def)
+{
+    return (STREQ(def->os.machine, "pc") ||
+            STRPREFIX(def->os.machine, "pc-0.") ||
+            STRPREFIX(def->os.machine, "pc-1.") ||
+            STRPREFIX(def->os.machine, "pc-i440") ||
+            STRPREFIX(def->os.machine, "rhel"));
+}
