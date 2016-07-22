@@ -941,7 +941,7 @@ qemuDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
 }
 
 
-static virDomainPCIAddressSetPtr
+virDomainPCIAddressSetPtr
 qemuDomainPCIAddressSetCreate(virDomainDefPtr def,
                               virQEMUCapsPtr qemuCaps,
                               bool dryRun,
@@ -1836,12 +1836,6 @@ qemuDomainReleaseDeviceAddress(virDomainObjPtr vm,
 
     if (!devstr)
         devstr = info->alias;
-
-    if (virDeviceInfoPCIAddressPresent(info) &&
-        virDomainPCIAddressReleaseSlot(priv->pciaddrs,
-                                       &info->addr.pci) < 0)
-        VIR_WARN("Unable to release PCI address on %s",
-                 NULLSTR(devstr));
 
     if (info->type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_USB &&
         priv->usbaddrs &&
