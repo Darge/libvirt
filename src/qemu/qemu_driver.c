@@ -44,6 +44,7 @@
 
 
 #include "qemu_driver.h"
+#include "qemu_driverpriv.h"
 #include "qemu_agent.h"
 #include "qemu_alias.h"
 #include "qemu_conf.h"
@@ -8065,7 +8066,7 @@ qemuDomainUpdateDeviceConfig(virDomainDefPtr vmdef,
     return 0;
 }
 
-static int
+int
 qemuDomainAttachDeviceLiveAndConfig(virConnectPtr conn,
                                     virDomainObjPtr vm,
                                     virQEMUDriverPtr driver,
@@ -8343,7 +8344,7 @@ qemuDomainUpdateDeviceFlags(virDomainPtr dom,
     return ret;
 }
 
-static int
+int
 qemuDomainDetachDeviceLiveAndConfig(virQEMUDriverPtr driver,
                                     virDomainObjPtr vm,
                                     const char *xml,
