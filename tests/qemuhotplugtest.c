@@ -164,13 +164,9 @@ testQemuHotplugUpdate(virDomainObjPtr vm,
 {
     int ret = -1;
 
-    /* XXX Ideally, we would call qemuDomainUpdateDeviceLive here.  But that
-     * would require us to provide virConnectPtr and virDomainPtr (they're used
-     * in case of updating a disk device. So for now, we will proceed with
-     * breaking the function into pieces. If we ever learn how to fake those
-     * required object, we can replace this code then. */
     switch (dev->type) {
     case VIR_DOMAIN_DEVICE_GRAPHICS:
+    case VIR_DOMAIN_DEVICE_DISK:
         /* conn is only used for storage lookup, so passing NULL should be safe. */
         ret = qemuDomainUpdateDeviceLiveAndConfig(NULL, vm, &driver,
                                                   device_xml, impact);
@@ -485,8 +481,7 @@ mymain(void)
     DO_TEST_UPDATE_LIVE("graphics-spice", "graphics-spice-listen", true, false, NULL);
     DO_TEST_UPDATE_LIVE("graphics-spice-listen-network", "graphics-spice-listen-network-password", false, false,
                         "set_password", QMP_OK, "expire_password", QMP_OK);
-    /* Strange huh? Currently, only graphics can be updated :-P */
-    DO_TEST_UPDATE_LIVE("disk-cdrom", "disk-cdrom-nochange", true, false, NULL);
+    DO_TEST_UPDATE_LIVE("disk-cdrom", "disk-cdrom-nochange", false, false, NULL);
 
     DO_TEST_ATTACH_LIVE("console-compat-2-live", "console-virtio", false, true,
                         "chardev-add", "{\"return\": {\"pty\": \"/dev/pts/26\"}}",
