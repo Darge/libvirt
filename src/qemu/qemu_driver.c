@@ -8202,7 +8202,7 @@ static int qemuDomainAttachDevice(virDomainPtr dom, const char *xml)
                                        VIR_DOMAIN_AFFECT_LIVE);
 }
 
-static int
+int
 qemuDomainUpdateDeviceLiveAndConfig(virConnectPtr conn,
                                     virDomainObjPtr vm,
                                     virQEMUDriverPtr driver,
