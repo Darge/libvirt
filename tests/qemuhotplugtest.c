@@ -158,7 +158,9 @@ testQemuHotplugDetach(virDomainObjPtr vm,
 
 static int
 testQemuHotplugUpdate(virDomainObjPtr vm,
-                      virDomainDeviceDefPtr dev)
+                      virDomainDeviceDefPtr dev,
+                      const char *device_xml,
+                      virDomainModificationImpact impact)
 {
     int ret = -1;
 
@@ -169,7 +171,9 @@ testQemuHotplugUpdate(virDomainObjPtr vm,
      * required object, we can replace this code then. */
     switch (dev->type) {
     case VIR_DOMAIN_DEVICE_GRAPHICS:
-        ret = qemuDomainChangeGraphics(&driver, vm, dev->data.graphics);
+        /* conn is only used for storage lookup, so passing NULL should be safe. */
+        ret = qemuDomainUpdateDeviceLiveAndConfig(NULL, vm, &driver,
+                                                  device_xml, impact);
         break;
     default:
         VIR_TEST_VERBOSE("device type '%s' cannot be updated\n",
@@ -350,7 +354,7 @@ testQemuHotplug(const void *data)
         break;
 
     case UPDATE:
-        ret = testQemuHotplugUpdate(vm, dev);
+        ret = testQemuHotplugUpdate(vm, dev, device_xml, impact);
     }
 
  cleanup:
