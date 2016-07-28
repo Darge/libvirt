@@ -37,4 +37,11 @@ int qemuDomainDetachDeviceLiveAndConfig(virQEMUDriverPtr driver,
                                         const char *xml,
                                         unsigned int flags);
 
+int
+qemuDomainUpdateDeviceLiveAndConfig(virConnectPtr conn,
+                                    virDomainObjPtr vm,
+                                    virQEMUDriverPtr driver,
+                                    const char *xml,
+                                    unsigned int flags);
+
 #endif /* __QEMU_DRIVERPRIV_H__ */
