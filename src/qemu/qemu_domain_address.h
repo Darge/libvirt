@@ -50,6 +50,16 @@ qemuDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
                                      virQEMUCapsPtr qemuCaps)
     ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
 
+virDomainPCIAddressSetPtr
+qemuDomainPCIAddrSetCreateFromDomain2(virDomainDefPtr def,
+                                     virQEMUCapsPtr qemuCaps)
+    ATTRIBUTE_NONNULL(1) ATTRIBUTE_NONNULL(2);
+
+virDomainPCIAddressSetPtr
+qemuDomainPCIAddressSetCreate(virDomainDefPtr def,
+                              unsigned int nbuses,
+                              bool dryRun);
+
 # define __QEMU_DOMAIN_ADDRESS_H__
 
 #endif /* __QEMU_DOMAIN_ADDRESS_H__ */

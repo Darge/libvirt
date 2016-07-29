@@ -538,13 +538,23 @@ qemuDomainCollectPCIAddress(virDomainDefPtr def ATTRIBUTE_UNUSED,
     return ret;
 }
 
-static virDomainPCIAddressSetPtr
+virDomainPCIAddressSetPtr
 qemuDomainPCIAddressSetCreate(virDomainDefPtr def,
                               unsigned int nbuses,
                               bool dryRun)
 {
     virDomainPCIAddressSetPtr addrs;
     size_t i;
+    int max_idx = -1;
+
+    for (i = 0; i < def->ncontrollers; i++) {
+        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_PCI) {
+            if ((int) def->controllers[i]->idx > max_idx)
+                max_idx = def->controllers[i]->idx;
+        }
+    }
+
+    nbuses = max_idx + 1;
 
     if ((addrs = virDomainPCIAddressSetAlloc(nbuses)) == NULL)
         return NULL;
@@ -936,6 +946,24 @@ qemuDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
         qemuDomainValidateDevicePCISlotsQ35(def, qemuCaps, addrs) < 0) {
         return -1;
     }
+
+    return 0;
+}
+
+static int
+qemuDomainValidateDevicePCISlotsChipsets2(virDomainDefPtr def,
+                                         virQEMUCapsPtr qemuCaps,
+                                         virDomainPCIAddressSetPtr addrs)
+{
+    if (qemuDomainMachineIsI440FX(def) &&
+        qemuDomainValidateDevicePCISlotsPIIX3(def, qemuCaps, addrs) < 0) {
+        return -1;
+    }
+
+    // if (qemuDomainMachineIsQ35(def) &&
+    //     qemuDomainValidateDevicePCISlotsQ35(def, qemuCaps, addrs) < 0) {
+    //     return -1;
+    // }
 
     return 0;
 }
@@ -1453,6 +1481,46 @@ qemuDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
 
         if (qemuDomainAssignDevicePCISlots(def, qemuCaps, addrs) < 0)
             goto cleanup;
+    }
+
+    ret = addrs;
+    addrs = NULL;
+
+ cleanup:
+    virDomainPCIAddressSetFree(addrs);
+
+    return ret;
+}
+
+virDomainPCIAddressSetPtr
+qemuDomainPCIAddrSetCreateFromDomain2(virDomainDefPtr def,
+                                     virQEMUCapsPtr qemuCaps)
+{
+    virDomainPCIAddressSetPtr addrs = NULL;
+    int max_idx = -1;
+    int nbuses = 0;
+    virDomainPCIAddressSetPtr ret = NULL;
+    size_t i;
+
+    for (i = 0; i < def->ncontrollers; i++) {
+        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_PCI) {
+            if ((int) def->controllers[i]->idx > max_idx)
+                max_idx = def->controllers[i]->idx;
+        }
+    }
+
+    nbuses = max_idx + 1;
+
+    if (!(addrs = qemuDomainPCIAddressSetCreate(def, nbuses, false)))
+        goto cleanup;
+
+    if (qemuDomainSupportsPCI(def, qemuCaps)) {
+        if (qemuDomainValidateDevicePCISlotsChipsets2(def, qemuCaps,
+                                                     addrs) < 0)
+            goto cleanup;
+
+        //if (qemuDomainAssignDevicePCISlots(def, qemuCaps, addrs) < 0)
+        //    goto cleanup;
     }
 
     ret = addrs;

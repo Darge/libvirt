@@ -346,8 +346,9 @@ qemuDomainAttachVirtioDiskDevice(virConnectPtr conn,
             goto error;
     } else if (!disk->info.type ||
                 disk->info.type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI) {
-        if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain(vm->def,
+        if (!(pciaddrs = qemuDomainPCIAddrSetCreateFromDomain2(vm->def,
                                                               priv->qemuCaps)))
+        if (!(pciaddrs = qemuDomainPCIAddressSetCreate(vm->def, 100, false)))
             goto error;
         if (virDomainPCIAddressEnsureAddr(pciaddrs, &disk->info) < 0)
             goto error;
