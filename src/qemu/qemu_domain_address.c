@@ -745,56 +745,56 @@ qemuDomainValidateDevicePCISlotsPIIX32(virDomainDefPtr def,
                                       virDomainPCIAddressSetPtr addrs)
 {
     int ret = -1;
-    size_t i;
+    //size_t i;
     virPCIDeviceAddress tmp_addr;
     bool qemuDeviceVideoUsable = virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_VIDEO_PRIMARY);
     char *addrStr = NULL;
     virDomainPCIConnectFlags flags = (VIR_PCI_CONNECT_HOTPLUGGABLE
                                       | VIR_PCI_CONNECT_TYPE_PCI_DEVICE);
 
-    /* Verify that first IDE and USB controllers (if any) is on the PIIX3, fn 1 */
-    for (i = 0; i < def->ncontrollers; i++) {
-        /* First IDE controller lives on the PIIX3 at slot=1, function=1 */
-        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_IDE &&
-            def->controllers[i]->idx == 0) {
-            if (virDeviceInfoPCIAddressPresent(&def->controllers[i]->info)) {
-                if (def->controllers[i]->info.addr.pci.domain != 0 ||
-                    def->controllers[i]->info.addr.pci.bus != 0 ||
-                    def->controllers[i]->info.addr.pci.slot != 1 ||
-                    def->controllers[i]->info.addr.pci.function != 1) {
-                    virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
-                                   _("Primary IDE controller must have PCI address 0:0:1.1"));
-                    goto cleanup;
-                }
-            } else {
-                def->controllers[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI;
-                def->controllers[i]->info.addr.pci.domain = 0;
-                def->controllers[i]->info.addr.pci.bus = 0;
-                def->controllers[i]->info.addr.pci.slot = 1;
-                def->controllers[i]->info.addr.pci.function = 1;
-            }
-        } else if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_USB &&
-                   def->controllers[i]->idx == 0 &&
-                   (def->controllers[i]->model == VIR_DOMAIN_CONTROLLER_MODEL_USB_PIIX3_UHCI ||
-                    def->controllers[i]->model == -1)) {
-            if (virDeviceInfoPCIAddressPresent(&def->controllers[i]->info)) {
-                if (def->controllers[i]->info.addr.pci.domain != 0 ||
-                    def->controllers[i]->info.addr.pci.bus != 0 ||
-                    def->controllers[i]->info.addr.pci.slot != 1 ||
-                    def->controllers[i]->info.addr.pci.function != 2) {
-                    virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
-                                   _("PIIX3 USB controller must have PCI address 0:0:1.2"));
-                    goto cleanup;
-                }
-            } else {
-                def->controllers[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI;
-                def->controllers[i]->info.addr.pci.domain = 0;
-                def->controllers[i]->info.addr.pci.bus = 0;
-                def->controllers[i]->info.addr.pci.slot = 1;
-                def->controllers[i]->info.addr.pci.function = 2;
-            }
-        }
-    }
+    // /* Verify that first IDE and USB controllers (if any) is on the PIIX3, fn 1 */
+    // for (i = 0; i < def->ncontrollers; i++) {
+    //     /* First IDE controller lives on the PIIX3 at slot=1, function=1 */
+    //     if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_IDE &&
+    //         def->controllers[i]->idx == 0) {
+    //         if (virDeviceInfoPCIAddressPresent(&def->controllers[i]->info)) {
+    //             if (def->controllers[i]->info.addr.pci.domain != 0 ||
+    //                 def->controllers[i]->info.addr.pci.bus != 0 ||
+    //                 def->controllers[i]->info.addr.pci.slot != 1 ||
+    //                 def->controllers[i]->info.addr.pci.function != 1) {
+    //                 virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+    //                                _("Primary IDE controller must have PCI address 0:0:1.1"));
+    //                 goto cleanup;
+    //             }
+    //         } else {
+    //             def->controllers[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI;
+    //             def->controllers[i]->info.addr.pci.domain = 0;
+    //             def->controllers[i]->info.addr.pci.bus = 0;
+    //             def->controllers[i]->info.addr.pci.slot = 1;
+    //             def->controllers[i]->info.addr.pci.function = 1;
+    //         }
+    //     } else if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_USB &&
+    //                def->controllers[i]->idx == 0 &&
+    //                (def->controllers[i]->model == VIR_DOMAIN_CONTROLLER_MODEL_USB_PIIX3_UHCI ||
+    //                 def->controllers[i]->model == -1)) {
+    //         if (virDeviceInfoPCIAddressPresent(&def->controllers[i]->info)) {
+    //             if (def->controllers[i]->info.addr.pci.domain != 0 ||
+    //                 def->controllers[i]->info.addr.pci.bus != 0 ||
+    //                 def->controllers[i]->info.addr.pci.slot != 1 ||
+    //                 def->controllers[i]->info.addr.pci.function != 2) {
+    //                 virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+    //                                _("PIIX3 USB controller must have PCI address 0:0:1.2"));
+    //                 goto cleanup;
+    //             }
+    //         } else {
+    //             def->controllers[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI;
+    //             def->controllers[i]->info.addr.pci.domain = 0;
+    //             def->controllers[i]->info.addr.pci.bus = 0;
+    //             def->controllers[i]->info.addr.pci.slot = 1;
+    //             def->controllers[i]->info.addr.pci.function = 2;
+    //         }
+    //     }
+    // }
 
     /* PIIX3 (ISA bridge, IDE controller, something else unknown, USB controller)
      * hardcoded slot=1, multifunction device
