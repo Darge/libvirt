@@ -1451,8 +1451,8 @@ qemuDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
                                                      addrs) < 0)
             goto cleanup;
 
-        if (qemuDomainAssignDevicePCISlots(def, qemuCaps, addrs) < 0)
-            goto cleanup;
+        // if (qemuDomainAssignDevicePCISlots(def, qemuCaps, addrs) < 0)
+        //     goto cleanup;
     }
 
     ret = addrs;
@@ -1549,6 +1549,9 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
         goto cleanup;
 
     if (qemuDomainSupportsPCI(def, qemuCaps)) {
+        if (qemuDomainAssignDevicePCISlots(def, qemuCaps, addrs) < 0)
+            goto cleanup;
+
         for (i = 0; i < def->ncontrollers; i++) {
             virDomainControllerDefPtr cont = def->controllers[i];
             int idx = cont->idx;
