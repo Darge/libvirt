@@ -550,50 +550,55 @@ mymain(void)
                         "device_del", QMP_OK,
                         "human-monitor-command", HMP(""));
 
-    // DO_TEST_ATTACH_EVENT_LIVE("base-live", "disk-scsi", false, true,
-    //                           "human-monitor-command", HMP("OK\\r\\n"),
-    //                           "device_add", QMP_OK,
-    //                           "qom-list", QOM_OK);
-    // DO_TEST_DETACH_LIVE("base-live", "disk-scsi", true, true,
-    //                     "device_del", QMP_OK,
-    //                     "qom-list", QOM_OK,
-    //                     "human-monitor-command", HMP(""));
-    // DO_TEST_DETACH_LIVE("base-live", "disk-scsi", false, false,
-    //                     "device_del", QMP_DEVICE_DELETED("scsi0-0-0-5") QMP_OK,
-    //                     "human-monitor-command", HMP(""),
-    //                     "qom-list", QOM_OK);
+    DO_TEST_ATTACH_EVENT_LIVE("base-live", "disk-scsi", "base-live+disk-scsi", false, true,
+                              "human-monitor-command", HMP("OK\\r\\n"),
+                              "device_add", QMP_OK,
+                              "qom-list", QOM_OK);
+    DO_TEST_DETACH_LIVE("base-live+disk-scsi", "disk-scsi", "base-live", true, true,
+                        "device_del", QMP_OK,
+                        "qom-list", QOM_OK,
+                        "human-monitor-command", HMP(""));
+    DO_TEST_DETACH_LIVE("base-live+disk-scsi", "disk-scsi", "base-live", false, false,
+                        "device_del", QMP_DEVICE_DELETED("scsi0-0-0-5") QMP_OK,
+                        "human-monitor-command", HMP(""),
+                        "qom-list", QOM_OK);
 
-    // DO_TEST_ATTACH_LIVE("base-without-scsi-controller-live", "disk-scsi-2", false, true,
-    //                     /* Four controllers added */
-    //                     "device_add", QMP_OK,
-    //                     "device_add", QMP_OK,
-    //                     "device_add", QMP_OK,
-    //                     "device_add", QMP_OK,
-    //                     "human-monitor-command", HMP("OK\\r\\n"),
-    //                     /* Disk added */
-    //                     "device_add", QMP_OK);
-    // DO_TEST_DETACH_LIVE("base-with-scsi-controller-live", "disk-scsi-2", false, false,
-    //                     "device_del", QMP_OK,
-    //                     "human-monitor-command", HMP(""));
+    DO_TEST_ATTACH_LIVE("base-without-scsi-controller-live", "disk-scsi-2",
+                         "base-without-scsi-controller-live+disk-scsi-2",false, true,
+                        /* Four controllers added */
+                        "device_add", QMP_OK,
+                        "device_add", QMP_OK,
+                        "device_add", QMP_OK,
+                        "device_add", QMP_OK,
+                        "human-monitor-command", HMP("OK\\r\\n"),
+                        /* Disk added */
+                        "device_add", QMP_OK);
+    DO_TEST_DETACH_LIVE("base-with-scsi-controller-live+disk-scsi-2", "disk-scsi-2",
+                        "base-with-scsi-controller-live", false, false,
+                        "device_del", QMP_OK,
+                        "human-monitor-command", HMP(""));
 
-    // DO_TEST_ATTACH_EVENT_LIVE("base-without-scsi-controller-live", "disk-scsi-2", false, true,
-    //                           /* Four controllers added */
-    //                           "device_add", QMP_OK,
-    //                           "device_add", QMP_OK,
-    //                           "device_add", QMP_OK,
-    //                           "device_add", QMP_OK,
-    //                           "human-monitor-command", HMP("OK\\r\\n"),
-    //                           /* Disk added */
-    //                           "device_add", QMP_OK,
-    //                           "qom-list", QOM_OK);
-    // DO_TEST_DETACH_LIVE("base-with-scsi-controller-live", "disk-scsi-2", true, true,
-    //                     "device_del", QMP_OK,
-    //                     "qom-list", QOM_OK,
-    //                     "human-monitor-command", HMP(""));
-    // DO_TEST_DETACH_LIVE("base-with-scsi-controller-live", "disk-scsi-2", false, false,
-    //                     "device_del", QMP_DEVICE_DELETED("scsi3-0-5-7") QMP_OK,
-    //                     "human-monitor-command", HMP(""),
-    //                     "qom-list", QOM_OK);
+    DO_TEST_ATTACH_EVENT_LIVE("base-without-scsi-controller-live", "disk-scsi-2",
+                              "base-without-scsi-controller-live+disk-scsi-2", false, true,
+                              /* Four controllers added */
+                              "device_add", QMP_OK,
+                              "device_add", QMP_OK,
+                              "device_add", QMP_OK,
+                              "device_add", QMP_OK,
+                              "human-monitor-command", HMP("OK\\r\\n"),
+                              /* Disk added */
+                              "device_add", QMP_OK,
+                              "qom-list", QOM_OK);
+    DO_TEST_DETACH_LIVE("base-with-scsi-controller-live+disk-scsi-2", "disk-scsi-2",
+                        "base-with-scsi-controller-live", true, true,
+                        "device_del", QMP_OK,
+                        "qom-list", QOM_OK,
+                        "human-monitor-command", HMP(""));
+    DO_TEST_DETACH_LIVE("base-with-scsi-controller-live+disk-scsi-2", "disk-scsi-2",
+                        "base-with-scsi-controller-live", false, false,
+                        "device_del", QMP_DEVICE_DELETED("scsi3-0-5-7") QMP_OK,
+                        "human-monitor-command", HMP(""),
+                        "qom-list", QOM_OK);
 
     // DO_TEST_ATTACH_LIVE("base-live", "qemu-agent", false, true,
     //                     "chardev-add", QMP_OK,
