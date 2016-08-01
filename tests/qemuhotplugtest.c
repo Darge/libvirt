@@ -530,25 +530,25 @@ mymain(void)
                         "device_del", QMP_OK,
                         "human-monitor-command", HMP(""));
 
-    // DO_TEST_ATTACH_EVENT_LIVE("base-live", "disk-usb", false, true,
-    //                           "human-monitor-command", HMP("OK\\r\\n"),
-    //                           "device_add", QMP_OK,
-    //                           "qom-list", QOM_OK);
-    // DO_TEST_DETACH_LIVE("base-live", "disk-usb", true, true,
-    //                     "device_del", QMP_OK,
-    //                     "qom-list", QOM_OK,
-    //                     "human-monitor-command", HMP(""));
-    // DO_TEST_DETACH_LIVE("base-live", "disk-usb", false, false,
-    //                     "device_del", QMP_DEVICE_DELETED("usb-disk16") QMP_OK,
-    //                     "human-monitor-command", HMP(""),
-    //                     "qom-list", QOM_OK);
+    DO_TEST_ATTACH_EVENT_LIVE("base-live", "disk-usb", "base-live+disk-usb", false, true,
+                              "human-monitor-command", HMP("OK\\r\\n"),
+                              "device_add", QMP_OK,
+                              "qom-list", QOM_OK);
+    DO_TEST_DETACH_LIVE("base-live+disk-usb", "disk-usb", "base-live", true, true,
+                        "device_del", QMP_OK,
+                        "qom-list", QOM_OK,
+                        "human-monitor-command", HMP(""));
+    DO_TEST_DETACH_LIVE("base-live+disk-usb", "disk-usb", "base-live", false, false,
+                        "device_del", QMP_DEVICE_DELETED("usb-disk16") QMP_OK,
+                        "human-monitor-command", HMP(""),
+                        "qom-list", QOM_OK);
 
-    // DO_TEST_ATTACH_LIVE("base-live", "disk-scsi", false, true,
-    //                     "human-monitor-command", HMP("OK\\r\\n"),
-    //                     "device_add", QMP_OK);
-    // DO_TEST_DETACH_LIVE("base-live", "disk-scsi", false, false,
-    //                     "device_del", QMP_OK,
-    //                     "human-monitor-command", HMP(""));
+    DO_TEST_ATTACH_LIVE("base-live", "disk-scsi", "base-live+disk-scsi", false, true,
+                        "human-monitor-command", HMP("OK\\r\\n"),
+                        "device_add", QMP_OK);
+    DO_TEST_DETACH_LIVE("base-live+disk-scsi", "disk-scsi", "base-live", false, false,
+                        "device_del", QMP_OK,
+                        "human-monitor-command", HMP(""));
 
     // DO_TEST_ATTACH_EVENT_LIVE("base-live", "disk-scsi", false, true,
     //                           "human-monitor-command", HMP("OK\\r\\n"),
