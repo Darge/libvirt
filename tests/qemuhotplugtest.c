@@ -483,43 +483,45 @@ mymain(void)
     "    }"                                                 \
     "}\r\n"
 
-    // DO_TEST_UPDATE_LIVE("graphics-spice", "graphics-spice-nochange", false, false, NULL);
-    // DO_TEST_UPDATE_LIVE("graphics-spice-timeout", "graphics-spice-timeout-nochange", false, false,
-    //                     "set_password", QMP_OK, "expire_password", QMP_OK);
-    // DO_TEST_UPDATE_LIVE("graphics-spice-timeout", "graphics-spice-timeout-password", false, false,
-    //                     "set_password", QMP_OK, "expire_password", QMP_OK);
-    // DO_TEST_UPDATE_LIVE("graphics-spice", "graphics-spice-listen", true, false, NULL);
-    // DO_TEST_UPDATE_LIVE("graphics-spice-listen-network", "graphics-spice-listen-network-password", false, false,
-    //                     "set_password", QMP_OK, "expire_password", QMP_OK);
-    // DO_TEST_UPDATE_LIVE("disk-cdrom", "disk-cdrom-nochange", false, false, NULL);
+    DO_TEST_UPDATE_LIVE("graphics-spice", "graphics-spice-nochange", false, false, NULL);
+    DO_TEST_UPDATE_LIVE("graphics-spice-timeout", "graphics-spice-timeout-nochange", false, false,
+                        "set_password", QMP_OK, "expire_password", QMP_OK);
+    DO_TEST_UPDATE_LIVE("graphics-spice-timeout", "graphics-spice-timeout-password", false, false,
+                        "set_password", QMP_OK, "expire_password", QMP_OK);
+    DO_TEST_UPDATE_LIVE("graphics-spice", "graphics-spice-listen", true, false, NULL);
+    DO_TEST_UPDATE_LIVE("graphics-spice-listen-network", "graphics-spice-listen-network-password", false, false,
+                        "set_password", QMP_OK, "expire_password", QMP_OK);
+    DO_TEST_UPDATE_LIVE("disk-cdrom", "disk-cdrom-nochange", false, false, NULL);
 
-    // DO_TEST_ATTACH_LIVE("console-compat-2-live", "console-virtio", false, true,
-    //                     "chardev-add", "{\"return\": {\"pty\": \"/dev/pts/26\"}}",
-    //                     "device_add", QMP_OK);
+    DO_TEST_ATTACH_LIVE("console-compat-2-live", "console-virtio",
+                        "console-compat-2-live+console-virtio", false, true,
+                        "chardev-add", "{\"return\": {\"pty\": \"/dev/pts/26\"}}",
+                        "device_add", QMP_OK);
 
-    // DO_TEST_DETACH_LIVE("console-compat-2-live", "console-virtio", false, false,
-    //                     "device_del", QMP_OK,
-    //                     "chardev-remove", QMP_OK);
+    DO_TEST_DETACH_LIVE("console-compat-2-live+console-virtio", "console-virtio",
+                        "console-compat-2-live", false, false,
+                        "device_del", QMP_OK,
+                        "chardev-remove", QMP_OK);
 
-    // DO_TEST_ATTACH_LIVE("base-live", "disk-virtio", false, true,
-    //                     "human-monitor-command", HMP("OK\\r\\n"),
-    //                     "device_add", QMP_OK);
-    // DO_TEST_DETACH_LIVE("base-live", "disk-virtio", false, false,
-    //                     "device_del", QMP_OK,
-    //                     "human-monitor-command", HMP(""));
+    DO_TEST_ATTACH_LIVE("base-live", "disk-virtio", "base-live+disk-virtio", false, true,
+                        "human-monitor-command", HMP("OK\\r\\n"),
+                        "device_add", QMP_OK);
+    DO_TEST_DETACH_LIVE("base-live+disk-virtio", "disk-virtio", "base-live", false, false,
+                        "device_del", QMP_OK,
+                        "human-monitor-command", HMP(""));
 
-    // DO_TEST_ATTACH_EVENT_LIVE("base-live", "disk-virtio", false, true,
-    //                           "human-monitor-command", HMP("OK\\r\\n"),
-    //                           "device_add", QMP_OK,
-    //                           "qom-list", QOM_OK);
-    // DO_TEST_DETACH_LIVE("base-live", "disk-virtio", true, true,
-    //                     "device_del", QMP_OK,
-    //                     "qom-list", QOM_OK,
-    //                     "human-monitor-command", HMP(""));
-    // DO_TEST_DETACH_LIVE("base-live", "disk-virtio", false, false,
-    //                     "device_del", QMP_DEVICE_DELETED("virtio-disk4") QMP_OK,
-    //                     "human-monitor-command", HMP(""),
-    //                     "qom-list", QOM_OK);
+    DO_TEST_ATTACH_EVENT_LIVE("base-live", "disk-virtio", "base-live+disk-virtio", false, true,
+                              "human-monitor-command", HMP("OK\\r\\n"),
+                              "device_add", QMP_OK,
+                              "qom-list", QOM_OK);
+    DO_TEST_DETACH_LIVE("base-live+disk-virtio", "disk-virtio", "base-live", true, true,
+                        "device_del", QMP_OK,
+                        "qom-list", QOM_OK,
+                        "human-monitor-command", HMP(""));
+    DO_TEST_DETACH_LIVE("base-live+disk-virtio", "disk-virtio", "base-live", false, false,
+                        "device_del", QMP_DEVICE_DELETED("virtio-disk4") QMP_OK,
+                        "human-monitor-command", HMP(""),
+                        "qom-list", QOM_OK);
 
     DO_TEST_ATTACH_LIVE("base-live", "disk-usb", "base-live+disk-usb", false, true,
                         "human-monitor-command", HMP("OK\\r\\n"),
