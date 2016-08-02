@@ -279,24 +279,18 @@ testQemuHotplug(const void *data)
     //     goto cleanup;
     // }
 
-    if (virTestLoadFile(domain_filename, &domain_xml) < 0 ||
-        virTestLoadFile(device_filename, &device_xml) < 0)
+    if (virTestLoadFile(device_filename, &device_xml) < 0)
         goto cleanup;
-
-    // if (test->action != UPDATE &&
-    //     virTestLoadFile(result_filename, &result_xml) < 0)
-    //     goto cleanup;
 
     if (test->action != UPDATE &&
         virTestLoadFile(expected_filename, &expected_xml) < 0)
         goto cleanup;
 
-    if (!(caps = virQEMUDriverGetCapabilities(&driver, false)))
-        goto cleanup;
-
     if (test->vm) {
         vm = test->vm;
     } else {
+        if (virTestLoadFile(domain_filename, &domain_xml) < 0)
+            goto cleanup;
         if (qemuHotplugCreateObjects(driver.xmlopt, &vm, domain_xml,
                                      test->deviceDeletedEvent,
                                      test->domain_filename,
@@ -304,8 +298,12 @@ testQemuHotplug(const void *data)
             goto cleanup;
     }
 
+
     if (test->action == ATTACH)
         device_parse_flags = VIR_DOMAIN_DEF_PARSE_INACTIVE;
+
+    if (!(caps = virQEMUDriverGetCapabilities(&driver, false)))
+        goto cleanup;
 
     if (!(dev = virDomainDeviceDefParse(device_xml, vm->def,
                                         caps, driver.xmlopt,
@@ -420,20 +418,21 @@ mymain(void)
     qemuDomainRemoveDeviceWaitTime = 100;
 
 #define DO_TEST(file, ACTION, dev, expectd, event, fial, kep, impct, ...)            \
-    do {                                                                    \
-        const char *my_mon[] = { __VA_ARGS__, NULL};                        \
-        const char *name = file " " #ACTION " " dev;                        \
-        data.action = ACTION;                                               \
-        data.domain_filename = file;                                        \
-        data.device_filename = dev;                                         \
-        data.expected_filename = expectd;                                   \
-        data.fail = fial;                                                   \
-        data.mon = my_mon;                                                  \
-        data.keep = kep;                                                    \
-        data.deviceDeletedEvent = event;                                    \
-        data.impact = impct;                                                \
-        if (virTestRun(name, testQemuHotplug, &data) < 0)                   \
-            ret = -1;                                                       \
+    do {                                                                             \
+        const char *my_mon[] = { __VA_ARGS__, NULL};                                 \
+        const char *name =                                                           \
+            (file) ? (#file " " #ACTION " " dev) : ("previous" " " #ACTION " " dev); \
+        data.action = ACTION;                                                        \
+        data.domain_filename = file;                                                 \
+        data.device_filename = dev;                                                  \
+        data.expected_filename = expectd;                                            \
+        data.fail = fial;                                                            \
+        data.mon = my_mon;                                                           \
+        data.keep = kep;                                                             \
+        data.deviceDeletedEvent = event;                                             \
+        data.impact = impct;                                                         \
+        if (virTestRun(name, testQemuHotplug, &data) < 0)                            \
+            ret = -1;                                                                \
     } while (0)
 
 #define DO_TEST_ATTACH_LIVE(file, dev, expctd, fial, kep, ...)                       \
@@ -600,12 +599,12 @@ mymain(void)
                         "human-monitor-command", HMP(""),
                         "qom-list", QOM_OK);
 
-    // DO_TEST_ATTACH_LIVE("base-live", "qemu-agent", false, true,
-    //                     "chardev-add", QMP_OK,
-    //                     "device_add", QMP_OK);
-    // DO_TEST_DETACH_LIVE("base-live", "qemu-agent-detach", false, false,
-    //                     "device_del", QMP_OK,
-    //                     "chardev-remove", QMP_OK);
+    DO_TEST_ATTACH_LIVE("base-live", "qemu-agent", "base-live+qemu-agent", false, true,
+                        "chardev-add", QMP_OK,
+                        "device_add", QMP_OK);
+    DO_TEST_DETACH_LIVE(NULL, "qemu-agent", "base-live", false, false,
+                        "device_del", QMP_OK,
+                        "chardev-remove", QMP_OK);
 
     // DO_TEST_ATTACH_LIVE("base-ccw-live", "ccw-virtio", false, true,
     //                     "human-monitor-command", HMP("OK\\r\\n"),
