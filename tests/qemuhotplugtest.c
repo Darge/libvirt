@@ -636,7 +636,6 @@ mymain(void)
                         "human-monitor-command", HMP(""));
 
     /* Have a domain with two devices, detach the first one, then attach the first one again. */
-
     DO_TEST_DETACH_LIVE("base-ccw-live+ccw-virtio+ccw-virtio-2", "ccw-virtio-1-explicit",
                         "base-ccw-live+ccw-virtio-2", false, true,
                         "device_del", QMP_OK,
@@ -645,12 +644,12 @@ mymain(void)
                         "human-monitor-command", HMP("OK\\r\\n"),
                         "device_add", QMP_OK);
 
-    // DO_TEST_ATTACH_CONFIG("base-config", "qemu-agent", false, true,
-    //                "chardev-add", QMP_OK,
-    //                "device_add", QMP_OK);
-    // DO_TEST_DETACH_CONFIG("base-config", "qemu-agent", false, false,
-    //                "device_del", QMP_OK,
-    //                "chardev-remove", QMP_OK);
+    DO_TEST_ATTACH_CONFIG("base-config", "qemu-agent-nosource", "base-config+qemu-agent+config", false, true,
+                   "chardev-add", QMP_OK,
+                   "device_add", QMP_OK);
+    DO_TEST_DETACH_CONFIG(NULL, "qemu-agent-nosource", "base-config", false, false,
+                   "device_del", QMP_OK,
+                   "chardev-remove", QMP_OK);
 
     qemuTestDriverFree(&driver);
     return (ret == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
