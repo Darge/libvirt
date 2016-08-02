@@ -644,7 +644,7 @@ mymain(void)
                         "human-monitor-command", HMP("OK\\r\\n"),
                         "device_add", QMP_OK);
 
-    DO_TEST_ATTACH_CONFIG("base-config", "qemu-agent-nosource", "base-config+qemu-agent+config", false, true,
+    DO_TEST_ATTACH_CONFIG("base-config", "qemu-agent-nosource", "base-config+qemu-agent", false, true,
                    "chardev-add", QMP_OK,
                    "device_add", QMP_OK);
     DO_TEST_DETACH_CONFIG(NULL, "qemu-agent-nosource", "base-config", false, false,
