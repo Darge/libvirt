@@ -635,18 +635,15 @@ mymain(void)
                         "device_del", QMP_OK,
                         "human-monitor-command", HMP(""));
 
-    // /* Attach a second device, then detach the first one. Then attach the first one again. */
-    // DO_TEST_ATTACH_LIVE("base-ccw-live-with-ccw-virtio", "ccw-virtio-2-explicit", false, true,
-    //                     "human-monitor-command", HMP("OK\\r\\n"),
-    //                     "device_add", QMP_OK);
+    /* Have a domain with two devices, detach the first one, then attach the first one again. */
 
-    // DO_TEST_DETACH_LIVE("base-ccw-live-with-2-ccw-virtio", "ccw-virtio-1-explicit", false, true,
-    //                     "device_del", QMP_OK,
-    //                     "human-monitor-command", HMP(""));
-
-    // DO_TEST_ATTACH_LIVE("base-ccw-live-with-2-ccw-virtio", "ccw-virtio-1-reverse", false, false,
-    //                     "human-monitor-command", HMP("OK\\r\\n"),
-    //                     "device_add", QMP_OK);
+    DO_TEST_DETACH_LIVE("base-ccw-live+ccw-virtio+ccw-virtio-2", "ccw-virtio-1-explicit",
+                        "base-ccw-live+ccw-virtio-2", false, true,
+                        "device_del", QMP_OK,
+                        "human-monitor-command", HMP(""));
+    DO_TEST_ATTACH_LIVE(NULL, "ccw-virtio", "base-ccw-live+ccw-virtio+ccw-virtio-2", false, false,
+                        "human-monitor-command", HMP("OK\\r\\n"),
+                        "device_add", QMP_OK);
 
     // DO_TEST_ATTACH_CONFIG("base-config", "qemu-agent", false, true,
     //                "chardev-add", QMP_OK,
