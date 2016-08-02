@@ -288,6 +288,12 @@ testQemuHotplug(const void *data)
 
     if (test->vm) {
         vm = test->vm;
+        if (test->domain_filename) {
+            VIR_TEST_VERBOSE("This test is set to use the previous domain definition,"
+                             " so domain_filename should be NULL\n");
+            goto cleanup;
+        }
+
     } else {
         if (virTestLoadFile(domain_filename, &domain_xml) < 0)
             goto cleanup;
@@ -497,7 +503,7 @@ mymain(void)
                         "chardev-add", "{\"return\": {\"pty\": \"/dev/pts/26\"}}",
                         "device_add", QMP_OK);
 
-    DO_TEST_DETACH_LIVE("console-compat-2-live+console-virtio", "console-virtio",
+    DO_TEST_DETACH_LIVE(NULL, "console-virtio",
                         "console-compat-2-live", false, false,
                         "device_del", QMP_OK,
                         "chardev-remove", QMP_OK);
@@ -505,7 +511,7 @@ mymain(void)
     DO_TEST_ATTACH_LIVE("base-live", "disk-virtio", "base-live+disk-virtio", false, true,
                         "human-monitor-command", HMP("OK\\r\\n"),
                         "device_add", QMP_OK);
-    DO_TEST_DETACH_LIVE("base-live+disk-virtio", "disk-virtio", "base-live", false, false,
+    DO_TEST_DETACH_LIVE(NULL, "disk-virtio", "base-live", false, false,
                         "device_del", QMP_OK,
                         "human-monitor-command", HMP(""));
 
@@ -513,11 +519,11 @@ mymain(void)
                               "human-monitor-command", HMP("OK\\r\\n"),
                               "device_add", QMP_OK,
                               "qom-list", QOM_OK);
-    DO_TEST_DETACH_LIVE("base-live+disk-virtio", "disk-virtio", "base-live", true, true,
+    DO_TEST_DETACH_LIVE(NULL, "disk-virtio", "base-live", true, true,
                         "device_del", QMP_OK,
                         "qom-list", QOM_OK,
                         "human-monitor-command", HMP(""));
-    DO_TEST_DETACH_LIVE("base-live+disk-virtio", "disk-virtio", "base-live", false, false,
+    DO_TEST_DETACH_LIVE(NULL, "disk-virtio", "base-live", false, false,
                         "device_del", QMP_DEVICE_DELETED("virtio-disk4") QMP_OK,
                         "human-monitor-command", HMP(""),
                         "qom-list", QOM_OK);
@@ -525,7 +531,7 @@ mymain(void)
     DO_TEST_ATTACH_LIVE("base-live", "disk-usb", "base-live+disk-usb", false, true,
                         "human-monitor-command", HMP("OK\\r\\n"),
                         "device_add", QMP_OK);
-    DO_TEST_DETACH_LIVE("base-live+disk-usb", "disk-usb", "base-live", false, false,
+    DO_TEST_DETACH_LIVE(NULL, "disk-usb", "base-live", false, false,
                         "device_del", QMP_OK,
                         "human-monitor-command", HMP(""));
 
@@ -533,11 +539,11 @@ mymain(void)
                               "human-monitor-command", HMP("OK\\r\\n"),
                               "device_add", QMP_OK,
                               "qom-list", QOM_OK);
-    DO_TEST_DETACH_LIVE("base-live+disk-usb", "disk-usb", "base-live", true, true,
+    DO_TEST_DETACH_LIVE(NULL, "disk-usb", "base-live", true, true,
                         "device_del", QMP_OK,
                         "qom-list", QOM_OK,
                         "human-monitor-command", HMP(""));
-    DO_TEST_DETACH_LIVE("base-live+disk-usb", "disk-usb", "base-live", false, false,
+    DO_TEST_DETACH_LIVE(NULL, "disk-usb", "base-live", false, false,
                         "device_del", QMP_DEVICE_DELETED("usb-disk16") QMP_OK,
                         "human-monitor-command", HMP(""),
                         "qom-list", QOM_OK);
@@ -545,7 +551,7 @@ mymain(void)
     DO_TEST_ATTACH_LIVE("base-live", "disk-scsi", "base-live+disk-scsi", false, true,
                         "human-monitor-command", HMP("OK\\r\\n"),
                         "device_add", QMP_OK);
-    DO_TEST_DETACH_LIVE("base-live+disk-scsi", "disk-scsi", "base-live", false, false,
+    DO_TEST_DETACH_LIVE(NULL, "disk-scsi", "base-live", false, false,
                         "device_del", QMP_OK,
                         "human-monitor-command", HMP(""));
 
@@ -553,11 +559,11 @@ mymain(void)
                               "human-monitor-command", HMP("OK\\r\\n"),
                               "device_add", QMP_OK,
                               "qom-list", QOM_OK);
-    DO_TEST_DETACH_LIVE("base-live+disk-scsi", "disk-scsi", "base-live", true, true,
+    DO_TEST_DETACH_LIVE(NULL, "disk-scsi", "base-live", true, true,
                         "device_del", QMP_OK,
                         "qom-list", QOM_OK,
                         "human-monitor-command", HMP(""));
-    DO_TEST_DETACH_LIVE("base-live+disk-scsi", "disk-scsi", "base-live", false, false,
+    DO_TEST_DETACH_LIVE(NULL, "disk-scsi", "base-live", false, false,
                         "device_del", QMP_DEVICE_DELETED("scsi0-0-0-5") QMP_OK,
                         "human-monitor-command", HMP(""),
                         "qom-list", QOM_OK);
@@ -572,7 +578,7 @@ mymain(void)
                         "human-monitor-command", HMP("OK\\r\\n"),
                         /* Disk added */
                         "device_add", QMP_OK);
-    DO_TEST_DETACH_LIVE("base-with-scsi-controller-live+disk-scsi-2", "disk-scsi-2",
+    DO_TEST_DETACH_LIVE(NULL, "disk-scsi-2",
                         "base-with-scsi-controller-live", false, false,
                         "device_del", QMP_OK,
                         "human-monitor-command", HMP(""));
@@ -588,12 +594,12 @@ mymain(void)
                               /* Disk added */
                               "device_add", QMP_OK,
                               "qom-list", QOM_OK);
-    DO_TEST_DETACH_LIVE("base-with-scsi-controller-live+disk-scsi-2", "disk-scsi-2",
+    DO_TEST_DETACH_LIVE(NULL, "disk-scsi-2",
                         "base-with-scsi-controller-live", true, true,
                         "device_del", QMP_OK,
                         "qom-list", QOM_OK,
                         "human-monitor-command", HMP(""));
-    DO_TEST_DETACH_LIVE("base-with-scsi-controller-live+disk-scsi-2", "disk-scsi-2",
+    DO_TEST_DETACH_LIVE(NULL, "disk-scsi-2",
                         "base-with-scsi-controller-live", false, false,
                         "device_del", QMP_DEVICE_DELETED("scsi3-0-5-7") QMP_OK,
                         "human-monitor-command", HMP(""),
