@@ -489,22 +489,25 @@ mymain(void)
     "}\r\n"
 
     DO_TEST_UPDATE_LIVE("graphics-spice", "graphics-spice-nochange", false, false, NULL);
+
     DO_TEST_UPDATE_LIVE("graphics-spice-timeout", "graphics-spice-timeout-nochange", false, false,
                         "set_password", QMP_OK, "expire_password", QMP_OK);
+
     DO_TEST_UPDATE_LIVE("graphics-spice-timeout", "graphics-spice-timeout-password", false, false,
                         "set_password", QMP_OK, "expire_password", QMP_OK);
+
     DO_TEST_UPDATE_LIVE("graphics-spice", "graphics-spice-listen", true, false, NULL);
+
     DO_TEST_UPDATE_LIVE("graphics-spice-listen-network", "graphics-spice-listen-network-password", false, false,
                         "set_password", QMP_OK, "expire_password", QMP_OK);
+
     DO_TEST_UPDATE_LIVE("disk-cdrom", "disk-cdrom-nochange", false, false, NULL);
 
     DO_TEST_ATTACH_LIVE("console-compat-2-live", "console-virtio",
                         "console-compat-2-live+console-virtio", false, true,
                         "chardev-add", "{\"return\": {\"pty\": \"/dev/pts/26\"}}",
                         "device_add", QMP_OK);
-
-    DO_TEST_DETACH_LIVE(NULL, "console-virtio",
-                        "console-compat-2-live", false, false,
+    DO_TEST_DETACH_LIVE(NULL, "console-virtio", "console-compat-2-live", false, false,
                         "device_del", QMP_OK,
                         "chardev-remove", QMP_OK);
 
@@ -578,8 +581,7 @@ mymain(void)
                         "human-monitor-command", HMP("OK\\r\\n"),
                         /* Disk added */
                         "device_add", QMP_OK);
-    DO_TEST_DETACH_LIVE(NULL, "disk-scsi-2",
-                        "base-with-scsi-controller-live", false, false,
+    DO_TEST_DETACH_LIVE(NULL, "disk-scsi-2", "base-with-scsi-controller-live", false, false,
                         "device_del", QMP_OK,
                         "human-monitor-command", HMP(""));
 
@@ -594,13 +596,11 @@ mymain(void)
                               /* Disk added */
                               "device_add", QMP_OK,
                               "qom-list", QOM_OK);
-    DO_TEST_DETACH_LIVE(NULL, "disk-scsi-2",
-                        "base-with-scsi-controller-live", true, true,
+    DO_TEST_DETACH_LIVE(NULL, "disk-scsi-2", "base-with-scsi-controller-live", true, true,
                         "device_del", QMP_OK,
                         "qom-list", QOM_OK,
                         "human-monitor-command", HMP(""));
-    DO_TEST_DETACH_LIVE(NULL, "disk-scsi-2",
-                        "base-with-scsi-controller-live", false, false,
+    DO_TEST_DETACH_LIVE(NULL, "disk-scsi-2", "base-with-scsi-controller-live", false, false,
                         "device_del", QMP_DEVICE_DELETED("scsi3-0-5-7") QMP_OK,
                         "human-monitor-command", HMP(""),
                         "qom-list", QOM_OK);
@@ -612,12 +612,12 @@ mymain(void)
                         "device_del", QMP_OK,
                         "chardev-remove", QMP_OK);
 
-    // DO_TEST_ATTACH_LIVE("base-ccw-live", "ccw-virtio", false, true,
-    //                     "human-monitor-command", HMP("OK\\r\\n"),
-    //                     "device_add", QMP_OK);
-    // DO_TEST_DETACH_LIVE("base-ccw-live", "ccw-virtio", false, false,
-    //                     "device_del", QMP_OK,
-    //                     "human-monitor-command", HMP(""));
+    DO_TEST_ATTACH_LIVE("base-ccw-live", "ccw-virtio", "base-ccw-live+ccw-virtio", false, true,
+                        "human-monitor-command", HMP("OK\\r\\n"),
+                        "device_add", QMP_OK);
+    DO_TEST_DETACH_LIVE(NULL, "ccw-virtio", "base-ccw-live", false, false,
+                        "device_del", QMP_OK,
+                        "human-monitor-command", HMP(""));
 
     // DO_TEST_ATTACH_LIVE("base-ccw-live-with-ccw-virtio", "ccw-virtio-2", false, true,
     //                     "human-monitor-command", HMP("OK\\r\\n"),
