@@ -233,11 +233,9 @@ testQemuHotplug(const void *data)
     struct qemuHotplugTestData *test = (struct qemuHotplugTestData *) data;
     char *domain_filename = NULL;
     char *device_filename = NULL;
-    //char *result_filename = NULL;
     char *expected_filename = NULL;
     char *domain_xml = NULL;
     char *device_xml = NULL;
-    //char *result_xml = NULL;
     char *expected_xml = NULL;
     const char *const *tmp;
     bool fail = test->fail;
@@ -257,27 +255,6 @@ testQemuHotplug(const void *data)
         virAsprintf(&expected_filename, "%s/qemuhotplugtestdomains/qemuhotplug-%s.xml",
                     abs_srcdir, test->expected_filename) < 0)
         goto cleanup;
-
-    // switch (impact) {
-    // case VIR_DOMAIN_AFFECT_LIVE:
-    //     if (virAsprintf(&result_filename,
-    //                     "%s/qemuhotplugtestdomains/qemuhotplug-%s+%s.xml",
-    //                     abs_srcdir, test->domain_filename,
-    //                     test->device_filename) < 0)
-    //         goto cleanup;
-    //     break;
-    // case VIR_DOMAIN_AFFECT_CONFIG:
-    //     if (virAsprintf(&result_filename,
-    //                     "%s/qemuhotplugtestdomains/qemuhotplug-%s+%s+config.xml",
-    //                     abs_srcdir, test->domain_filename,
-    //                     test->device_filename) < 0)
-    //         goto cleanup;
-    //     break;
-    // default:
-    //     VIR_TEST_VERBOSE("Impact can either be VIR_DOMAIN_AFFECT_LIVE"
-    //                      " or VIR_DOMAIN_AFFECT_CONFIG\n");
-    //     goto cleanup;
-    // }
 
     if (virTestLoadFile(device_filename, &device_xml) < 0)
         goto cleanup;
@@ -303,7 +280,6 @@ testQemuHotplug(const void *data)
                                      impact) < 0)
             goto cleanup;
     }
-
 
     if (test->action == ATTACH)
         device_parse_flags = VIR_DOMAIN_DEF_PARSE_INACTIVE;
@@ -369,10 +345,8 @@ testQemuHotplug(const void *data)
  cleanup:
     VIR_FREE(domain_filename);
     VIR_FREE(device_filename);
-    //VIR_FREE(result_filename);
     VIR_FREE(domain_xml);
     VIR_FREE(device_xml);
-    //VIR_FREE(result_xml);
     /* don't dispose test monitor with VM */
     if (priv)
         priv->mon = NULL;
