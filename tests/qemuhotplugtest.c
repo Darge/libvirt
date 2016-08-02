@@ -431,7 +431,7 @@ mymain(void)
     DO_TEST(file, DETACH, dev, expctd, true, fial, kep,                              \
         VIR_DOMAIN_AFFECT_LIVE, __VA_ARGS__)
 
-#define DO_TEST_UPDATE_LIVE(file, dev, fial, kep, ...)                       \
+#define DO_TEST_UPDATE_LIVE(file, dev, expctd, fial, kep, ...)                       \
     DO_TEST(file, UPDATE, dev, NULL, false, fial, kep,                             \
         VIR_DOMAIN_AFFECT_LIVE, __VA_ARGS__)
 
@@ -462,20 +462,20 @@ mymain(void)
     "    }"                                                 \
     "}\r\n"
 
-    DO_TEST_UPDATE_LIVE("graphics-spice", "graphics-spice-nochange", false, false, NULL);
+    DO_TEST_UPDATE_LIVE("graphics-spice", "graphics-spice-nochange", NULL, false, false, NULL);
 
-    DO_TEST_UPDATE_LIVE("graphics-spice-timeout", "graphics-spice-timeout-nochange", false, false,
+    DO_TEST_UPDATE_LIVE("graphics-spice-timeout", "graphics-spice-timeout-nochange", NULL, false, false,
                         "set_password", QMP_OK, "expire_password", QMP_OK);
 
-    DO_TEST_UPDATE_LIVE("graphics-spice-timeout", "graphics-spice-timeout-password", false, false,
+    DO_TEST_UPDATE_LIVE("graphics-spice-timeout", "graphics-spice-timeout-password", NULL, false, false,
                         "set_password", QMP_OK, "expire_password", QMP_OK);
 
-    DO_TEST_UPDATE_LIVE("graphics-spice", "graphics-spice-listen", true, false, NULL);
+    DO_TEST_UPDATE_LIVE("graphics-spice", "graphics-spice-listen", NULL, true, false, NULL);
 
-    DO_TEST_UPDATE_LIVE("graphics-spice-listen-network", "graphics-spice-listen-network-password", false, false,
+    DO_TEST_UPDATE_LIVE("graphics-spice-listen-network", "graphics-spice-listen-network-password", NULL, false, false,
                         "set_password", QMP_OK, "expire_password", QMP_OK);
 
-    DO_TEST_UPDATE_LIVE("disk-cdrom", "disk-cdrom-nochange", false, false, NULL);
+    DO_TEST_UPDATE_LIVE("disk-cdrom", "disk-cdrom-nochange", NULL, false, false, NULL);
 
     DO_TEST_ATTACH_LIVE("console-compat-2-live", "console-virtio",
                         "console-compat-2-live+console-virtio", false, true,
