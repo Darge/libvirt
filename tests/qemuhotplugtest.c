@@ -627,13 +627,13 @@ mymain(void)
                         "device_del", QMP_OK,
                         "human-monitor-command", HMP(""));
 
-    // DO_TEST_ATTACH_LIVE("base-ccw-live-with-ccw-virtio", "ccw-virtio-2-explicit", false, true,
-    //                     "human-monitor-command", HMP("OK\\r\\n"),
-    //                     "device_add", QMP_OK);
-
-    // DO_TEST_DETACH_LIVE("base-ccw-live-with-ccw-virtio", "ccw-virtio-2-explicit", false, false,
-    //                     "device_del", QMP_OK,
-    //                     "human-monitor-command", HMP(""));
+    DO_TEST_ATTACH_LIVE("base-ccw-live+ccw-virtio", "ccw-virtio-2-explicit",
+                        "base-ccw-live+ccw-virtio+ccw-virtio-2", false, true,
+                        "human-monitor-command", HMP("OK\\r\\n"),
+                        "device_add", QMP_OK);
+    DO_TEST_DETACH_LIVE(NULL, "ccw-virtio-2-explicit", "base-ccw-live+ccw-virtio", false, false,
+                        "device_del", QMP_OK,
+                        "human-monitor-command", HMP(""));
 
     // /* Attach a second device, then detach the first one. Then attach the first one again. */
     // DO_TEST_ATTACH_LIVE("base-ccw-live-with-ccw-virtio", "ccw-virtio-2-explicit", false, true,
