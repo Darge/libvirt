@@ -427,7 +427,7 @@ mymain(void)
     do {                                                                             \
         const char *my_mon[] = { __VA_ARGS__, NULL};                                 \
         const char *name =                                                           \
-            (file) ? (#file " " #ACTION " " dev) : ("previous" " " #ACTION " " dev); \
+            (file) ? (#file " " #ACTION " " dev) : ("previous " #ACTION " " dev);    \
         data.action = ACTION;                                                        \
         data.domain_filename = file;                                                 \
         data.device_filename = dev;                                                  \
@@ -572,7 +572,7 @@ mymain(void)
                         "qom-list", QOM_OK);
 
     DO_TEST_ATTACH_LIVE("base-without-scsi-controller-live", "disk-scsi-2",
-                         "base-without-scsi-controller-live+disk-scsi-2",false, true,
+                        "base-without-scsi-controller-live+disk-scsi-2", false, true,
                         /* Four controllers added */
                         "device_add", QMP_OK,
                         "device_add", QMP_OK,
@@ -645,11 +645,11 @@ mymain(void)
                         "device_add", QMP_OK);
 
     DO_TEST_ATTACH_CONFIG("base-config", "qemu-agent-nosource", "base-config+qemu-agent", false, true,
-                   "chardev-add", QMP_OK,
-                   "device_add", QMP_OK);
+                          "chardev-add", QMP_OK,
+                          "device_add", QMP_OK);
     DO_TEST_DETACH_CONFIG(NULL, "qemu-agent-nosource", "base-config", false, false,
-                   "device_del", QMP_OK,
-                   "chardev-remove", QMP_OK);
+                          "device_del", QMP_OK,
+                          "chardev-remove", QMP_OK);
 
     qemuTestDriverFree(&driver);
     return (ret == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
