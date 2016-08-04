@@ -540,11 +540,20 @@ qemuDomainCollectPCIAddress(virDomainDefPtr def ATTRIBUTE_UNUSED,
 
 static virDomainPCIAddressSetPtr
 qemuDomainPCIAddressSetCreate(virDomainDefPtr def,
-                              unsigned int nbuses,
                               bool dryRun)
 {
     virDomainPCIAddressSetPtr addrs;
     size_t i;
+    int nbuses = 0;
+    int max_idx = -1;
+
+    for (i = 0; i < def->ncontrollers; i++) {
+        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_PCI) {
+            if ((int) def->controllers[i]->idx > max_idx)
+                max_idx = def->controllers[i]->idx;
+        }
+    }
+    nbuses = max_idx + 1;
 
     if ((addrs = virDomainPCIAddressSetAlloc(nbuses)) == NULL)
         return NULL;
@@ -1429,21 +1438,9 @@ qemuDomainPCIAddrSetCreateFromDomain(virDomainDefPtr def,
                                      virQEMUCapsPtr qemuCaps)
 {
     virDomainPCIAddressSetPtr addrs = NULL;
-    int max_idx = -1;
-    int nbuses = 0;
     virDomainPCIAddressSetPtr ret = NULL;
-    size_t i;
 
-    for (i = 0; i < def->ncontrollers; i++) {
-        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_PCI) {
-            if ((int) def->controllers[i]->idx > max_idx)
-                max_idx = def->controllers[i]->idx;
-        }
-    }
-
-    nbuses = max_idx + 1;
-
-    if (!(addrs = qemuDomainPCIAddressSetCreate(def, nbuses, false)))
+    if (!(addrs = qemuDomainPCIAddressSetCreate(def, false)))
         goto cleanup;
 
     if (qemuDomainSupportsPCI(def, qemuCaps)) {
@@ -1494,7 +1491,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
         virDomainDeviceInfo info;
 
         /* 1st pass to figure out how many PCI bridges we need */
-        if (!(addrs = qemuDomainPCIAddressSetCreate(def, nbuses, true)))
+        if (!(addrs = qemuDomainPCIAddressSetCreate(def, true)))
             goto cleanup;
 
         if (qemuDomainValidateDevicePCISlotsChipsets(def, qemuCaps,
@@ -1534,7 +1531,6 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
                 virDomainPCIAddressReserveNextSlot(addrs, &info, flags) < 0)
                 goto cleanup;
         }
-        nbuses = addrs->nbuses;
         virDomainPCIAddressSetFree(addrs);
         addrs = NULL;
 
