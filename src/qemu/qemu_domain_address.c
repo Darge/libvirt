@@ -538,62 +538,24 @@ qemuDomainCollectPCIAddress(virDomainDefPtr def ATTRIBUTE_UNUSED,
     return ret;
 }
 
-static virDomainPCIAddressSetPtr
-qemuDomainPCIAddressSetCreate(virDomainDefPtr def,
-                              unsigned int nbuses,
-                              bool dryRun)
+
+static bool
+qemuDomainSupportsPCI(virDomainDefPtr def,
+                      virQEMUCapsPtr qemuCaps)
 {
-    virDomainPCIAddressSetPtr addrs;
-    size_t i;
+    if ((def->os.arch != VIR_ARCH_ARMV7L) && (def->os.arch != VIR_ARCH_AARCH64))
+        return true;
 
-    if ((addrs = virDomainPCIAddressSetAlloc(nbuses)) == NULL)
-        return NULL;
+    if (STREQ(def->os.machine, "versatilepb"))
+        return true;
 
-    addrs->nbuses = nbuses;
-    addrs->dryRun = dryRun;
+    if (qemuDomainMachineIsVirt(def) &&
+        virQEMUCapsGet(qemuCaps, QEMU_CAPS_OBJECT_GPEX))
+        return true;
 
-    /* As a safety measure, set default model='pci-root' for first pci
-     * controller and 'pci-bridge' for all subsequent. After setting
-     * those defaults, then scan the config and set the actual model
-     * for all addrs[idx]->bus that already have a corresponding
-     * controller in the config.
-     *
-     */
-    if (nbuses > 0)
-        virDomainPCIAddressBusSetModel(&addrs->buses[0],
-                                       VIR_DOMAIN_CONTROLLER_MODEL_PCI_ROOT);
-    for (i = 1; i < nbuses; i++) {
-        virDomainPCIAddressBusSetModel(&addrs->buses[i],
-                                       VIR_DOMAIN_CONTROLLER_MODEL_PCI_BRIDGE);
-    }
-
-    for (i = 0; i < def->ncontrollers; i++) {
-        size_t idx = def->controllers[i]->idx;
-
-        if (def->controllers[i]->type != VIR_DOMAIN_CONTROLLER_TYPE_PCI)
-            continue;
-
-        if (idx >= addrs->nbuses) {
-            virReportError(VIR_ERR_INTERNAL_ERROR,
-                           _("Inappropriate new pci controller index %zu "
-                             "not found in addrs"), idx);
-            goto error;
-        }
-
-        if (virDomainPCIAddressBusSetModel(&addrs->buses[idx],
-                                           def->controllers[i]->model) < 0)
-            goto error;
-        }
-
-    if (virDomainDeviceInfoIterate(def, qemuDomainCollectPCIAddress, addrs) < 0)
-        goto error;
-
-    return addrs;
-
- error:
-    virDomainPCIAddressSetFree(addrs);
-    return NULL;
+    return false;
 }
+
 
 
 static int
@@ -938,6 +900,80 @@ qemuDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
     }
 
     return 0;
+}
+
+
+static virDomainPCIAddressSetPtr
+qemuDomainPCIAddressSetCreate(virDomainDefPtr def,
+                              virQEMUCapsPtr qemuCaps,
+                              bool dryRun)
+{
+    virDomainPCIAddressSetPtr addrs;
+    int max_idx = -1;
+    int nbuses = 0;
+    size_t i;
+
+    for (i = 0; i < def->ncontrollers; i++) {
+        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_PCI) {
+            if ((int) def->controllers[i]->idx > max_idx)
+                max_idx = def->controllers[i]->idx;
+        }
+    }
+
+    nbuses = max_idx + 1;
+
+    if ((addrs = virDomainPCIAddressSetAlloc(nbuses)) == NULL)
+        return NULL;
+
+    addrs->nbuses = nbuses;
+    addrs->dryRun = dryRun;
+
+    /* As a safety measure, set default model='pci-root' for first pci
+     * controller and 'pci-bridge' for all subsequent. After setting
+     * those defaults, then scan the config and set the actual model
+     * for all addrs[idx]->bus that already have a corresponding
+     * controller in the config.
+     *
+     */
+    if (nbuses > 0)
+        virDomainPCIAddressBusSetModel(&addrs->buses[0],
+                                       VIR_DOMAIN_CONTROLLER_MODEL_PCI_ROOT);
+    for (i = 1; i < nbuses; i++) {
+        virDomainPCIAddressBusSetModel(&addrs->buses[i],
+                                       VIR_DOMAIN_CONTROLLER_MODEL_PCI_BRIDGE);
+    }
+
+    for (i = 0; i < def->ncontrollers; i++) {
+        size_t idx = def->controllers[i]->idx;
+
+        if (def->controllers[i]->type != VIR_DOMAIN_CONTROLLER_TYPE_PCI)
+            continue;
+
+        if (idx >= addrs->nbuses) {
+            virReportError(VIR_ERR_INTERNAL_ERROR,
+                           _("Inappropriate new pci controller index %zu "
+                             "not found in addrs"), idx);
+            goto error;
+        }
+
+        if (virDomainPCIAddressBusSetModel(&addrs->buses[idx],
+                                           def->controllers[i]->model) < 0)
+            goto error;
+        }
+
+    if (virDomainDeviceInfoIterate(def, qemuDomainCollectPCIAddress, addrs) < 0)
+        goto error;
+
+    if ((dryRun || qemuDomainSupportsPCI(def, qemuCaps)) &&
+        qemuDomainValidateDevicePCISlotsChipsets(def, qemuCaps,
+                                                 addrs) < 0)
+        goto error;
+
+    return addrs;
+
+ error:
+    virDomainPCIAddressSetFree(addrs);
+    return NULL;
 }
 
 
@@ -1301,24 +1337,6 @@ qemuDomainAssignDevicePCISlots(virDomainDefPtr def,
 }
 
 
-static bool
-qemuDomainSupportsPCI(virDomainDefPtr def,
-                      virQEMUCapsPtr qemuCaps)
-{
-    if ((def->os.arch != VIR_ARCH_ARMV7L) && (def->os.arch != VIR_ARCH_AARCH64))
-        return true;
-
-    if (STREQ(def->os.machine, "versatilepb"))
-        return true;
-
-    if (qemuDomainMachineIsVirt(def) &&
-        virQEMUCapsGet(qemuCaps, QEMU_CAPS_OBJECT_GPEX))
-        return true;
-
-    return false;
-}
-
-
 static void
 qemuDomainPCIControllerSetDefaultModelName(virDomainControllerDefPtr cont)
 {
@@ -1455,11 +1473,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
         virDomainDeviceInfo info;
 
         /* 1st pass to figure out how many PCI bridges we need */
-        if (!(addrs = qemuDomainPCIAddressSetCreate(def, nbuses, true)))
-            goto cleanup;
-
-        if (qemuDomainValidateDevicePCISlotsChipsets(def, qemuCaps,
-                                                     addrs) < 0)
+        if (!(addrs = qemuDomainPCIAddressSetCreate(def, qemuCaps, true)))
             goto cleanup;
 
         for (i = 0; i < addrs->nbuses; i++) {
@@ -1506,14 +1520,10 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
         goto cleanup;
     }
 
-    if (!(addrs = qemuDomainPCIAddressSetCreate(def, nbuses, false)))
+    if (!(addrs = qemuDomainPCIAddressSetCreate(def, qemuCaps, false)))
         goto cleanup;
 
     if (qemuDomainSupportsPCI(def, qemuCaps)) {
-        if (qemuDomainValidateDevicePCISlotsChipsets(def, qemuCaps,
-                                                     addrs) < 0)
-            goto cleanup;
-
         if (qemuDomainAssignDevicePCISlots(def, qemuCaps, addrs) < 0)
             goto cleanup;
 
