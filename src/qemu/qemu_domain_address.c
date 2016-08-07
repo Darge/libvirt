@@ -1452,23 +1452,19 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
     virDomainPCIAddressSetPtr addrs = NULL;
     qemuDomainObjPrivatePtr priv = NULL;
     int max_idx = -1;
-    int nbuses = 0;
     size_t i;
     int rv;
     bool buses_reserved = true;
+    bool pci_bus_present = false;
 
     virDomainPCIConnectFlags flags = VIR_PCI_CONNECT_TYPE_PCI_DEVICE;
 
     for (i = 0; i < def->ncontrollers; i++) {
-        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_PCI) {
-            if ((int) def->controllers[i]->idx > max_idx)
-                max_idx = def->controllers[i]->idx;
-        }
+        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_PCI)
+            pci_bus_present = true;
     }
 
-    nbuses = max_idx + 1;
-
-    if (nbuses > 0 &&
+    if (pci_bus_present &&
         virQEMUCapsGet(qemuCaps, QEMU_CAPS_DEVICE_PCI_BRIDGE)) {
         virDomainDeviceInfo info;
 
@@ -1509,7 +1505,6 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
                 virDomainPCIAddressReserveNextSlot(addrs, &info, flags) < 0)
                 goto cleanup;
         }
-        nbuses = addrs->nbuses;
         virDomainPCIAddressSetFree(addrs);
         addrs = NULL;
 
