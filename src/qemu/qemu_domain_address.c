@@ -561,8 +561,10 @@ qemuDomainSupportsPCI(virDomainDefPtr def,
 static int
 qemuDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
                                       virQEMUCapsPtr qemuCaps,
-                                      virDomainPCIAddressSetPtr addrs)
+                                      virDomainPCIAddressSetPtr addrs,
+                                      bool assign)
 {
+    assign = assign; // TODO
     int ret = -1;
     size_t i;
     virPCIDeviceAddress tmp_addr;
@@ -695,8 +697,10 @@ qemuDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
 static int
 qemuDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
                                     virQEMUCapsPtr qemuCaps,
-                                    virDomainPCIAddressSetPtr addrs)
+                                    virDomainPCIAddressSetPtr addrs,
+                                    bool assign)
 {
+    assign = assign; // TODO
     int ret = -1;
     size_t i;
     virPCIDeviceAddress tmp_addr;
@@ -745,18 +749,18 @@ qemuDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
                  * get assigned to the same slot as the UHCI1 when
                  * addresses are later assigned to all devices.)
                  */
-                bool assign = false;
+                bool assignUSB = false;
 
                 memset(&tmp_addr, 0, sizeof(tmp_addr));
                 tmp_addr.slot = 0x1D;
                 if (!virDomainPCIAddressSlotInUse(addrs, &tmp_addr)) {
-                    assign = true;
+                    assignUSB = true;
                 } else {
                     tmp_addr.slot = 0x1A;
                     if (!virDomainPCIAddressSlotInUse(addrs, &tmp_addr))
-                        assign = true;
+                        assignUSB = true;
                 }
-                if (assign) {
+                if (assignUSB) {
                     if (virDomainPCIAddressReserveAddr(addrs, &tmp_addr,
                                                        flags, false, true) < 0)
                         goto cleanup;
@@ -887,15 +891,16 @@ qemuDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
 static int
 qemuDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
                                          virQEMUCapsPtr qemuCaps,
-                                         virDomainPCIAddressSetPtr addrs)
+                                         virDomainPCIAddressSetPtr addrs,
+                                         bool assign)
 {
     if (qemuDomainMachineIsI440FX(def) &&
-        qemuDomainValidateDevicePCISlotsPIIX3(def, qemuCaps, addrs) < 0) {
+        qemuDomainValidateDevicePCISlotsPIIX3(def, qemuCaps, addrs, assign) < 0) {
         return -1;
     }
 
     if (qemuDomainMachineIsQ35(def) &&
-        qemuDomainValidateDevicePCISlotsQ35(def, qemuCaps, addrs) < 0) {
+        qemuDomainValidateDevicePCISlotsQ35(def, qemuCaps, addrs, assign) < 0) {
         return -1;
     }
 
@@ -966,7 +971,7 @@ qemuDomainPCIAddressSetCreate(virDomainDefPtr def,
 
     if ((dryRun || qemuDomainSupportsPCI(def, qemuCaps)) &&
         qemuDomainValidateDevicePCISlotsChipsets(def, qemuCaps,
-                                                 addrs) < 0)
+                                                 addrs, !dryRun) < 0)
         goto error;
 
     return addrs;
