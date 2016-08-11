@@ -564,7 +564,6 @@ qemuDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
                                       virDomainPCIAddressSetPtr addrs,
                                       bool assign)
 {
-    assign = assign; // TODO
     int ret = -1;
     size_t i;
     virPCIDeviceAddress tmp_addr;
@@ -588,6 +587,11 @@ qemuDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
                     goto cleanup;
                 }
             } else {
+                if (!assign) {
+                    virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                                   _("All addresses should have been already assigned by now."));
+                    goto cleanup;
+                }
                 def->controllers[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI;
                 def->controllers[i]->info.addr.pci.domain = 0;
                 def->controllers[i]->info.addr.pci.bus = 0;
@@ -608,6 +612,11 @@ qemuDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
                     goto cleanup;
                 }
             } else {
+                if (!assign) {
+                    virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                                   _("All addresses should have been already assigned by now."));
+                    goto cleanup;
+                }
                 def->controllers[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI;
                 def->controllers[i]->info.addr.pci.domain = 0;
                 def->controllers[i]->info.addr.pci.bus = 0;
@@ -636,6 +645,11 @@ qemuDomainValidateDevicePCISlotsPIIX3(virDomainDefPtr def,
          */
         virDomainVideoDefPtr primaryVideo = def->videos[0];
         if (virDeviceInfoPCIAddressWanted(&primaryVideo->info)) {
+            if (!assign) {
+                virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                               _("All addresses should have been already assigned by now."));
+                goto cleanup;
+            }
             memset(&tmp_addr, 0, sizeof(tmp_addr));
             tmp_addr.slot = 2;
 
@@ -911,7 +925,8 @@ qemuDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
 static virDomainPCIAddressSetPtr
 qemuDomainPCIAddressSetCreate(virDomainDefPtr def,
                               virQEMUCapsPtr qemuCaps,
-                              bool dryRun)
+                              bool dryRun,
+                              bool assign)
 {
     virDomainPCIAddressSetPtr addrs;
     int max_idx = -1;
@@ -971,7 +986,7 @@ qemuDomainPCIAddressSetCreate(virDomainDefPtr def,
 
     if ((dryRun || qemuDomainSupportsPCI(def, qemuCaps)) &&
         qemuDomainValidateDevicePCISlotsChipsets(def, qemuCaps,
-                                                 addrs, !dryRun) < 0)
+                                                 addrs, assign) < 0)
         goto error;
 
     return addrs;
@@ -1474,7 +1489,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
         virDomainDeviceInfo info;
 
         /* 1st pass to figure out how many PCI bridges we need */
-        if (!(addrs = qemuDomainPCIAddressSetCreate(def, qemuCaps, true)))
+        if (!(addrs = qemuDomainPCIAddressSetCreate(def, qemuCaps, true, true)))
             goto cleanup;
 
         for (i = 0; i < addrs->nbuses; i++) {
@@ -1520,7 +1535,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
         goto cleanup;
     }
 
-    if (!(addrs = qemuDomainPCIAddressSetCreate(def, qemuCaps, false)))
+    if (!(addrs = qemuDomainPCIAddressSetCreate(def, qemuCaps, false, true)))
         goto cleanup;
 
     if (qemuDomainSupportsPCI(def, qemuCaps)) {
