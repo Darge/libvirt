@@ -714,7 +714,6 @@ qemuDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
                                     virDomainPCIAddressSetPtr addrs,
                                     bool assign)
 {
-    assign = assign; // TODO
     int ret = -1;
     size_t i;
     virPCIDeviceAddress tmp_addr;
@@ -740,6 +739,11 @@ qemuDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
                         goto cleanup;
                     }
                 } else {
+                    if (!assign) {
+                        virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                                       _("All addresses should have been already assigned by now."));
+                        goto cleanup;
+                    }
                     def->controllers[i]->info.type = VIR_DOMAIN_DEVICE_ADDRESS_TYPE_PCI;
                     def->controllers[i]->info.addr.pci.domain = 0;
                     def->controllers[i]->info.addr.pci.bus = 0;
@@ -775,6 +779,11 @@ qemuDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
                         assignUSB = true;
                 }
                 if (assignUSB) {
+                    if (!assign) {
+                        virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                                       _("All addresses should have been already assigned by now."));
+                        goto cleanup;
+                    }
                     if (virDomainPCIAddressReserveAddr(addrs, &tmp_addr,
                                                        flags, false, true) < 0)
                         goto cleanup;
@@ -800,6 +809,11 @@ qemuDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
                 memset(&tmp_addr, 0, sizeof(tmp_addr));
                 tmp_addr.slot = 0x1E;
                 if (!virDomainPCIAddressSlotInUse(addrs, &tmp_addr)) {
+                    if (!assign) {
+                        virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                                       _("All addresses should have been already assigned by now."));
+                        goto cleanup;
+                    }
                     if (virDomainPCIAddressReserveAddr(addrs, &tmp_addr,
                                                        flags, true, false) < 0)
                         goto cleanup;
@@ -843,6 +857,11 @@ qemuDomainValidateDevicePCISlotsQ35(virDomainDefPtr def,
          */
         virDomainVideoDefPtr primaryVideo = def->videos[0];
         if (virDeviceInfoPCIAddressWanted(&primaryVideo->info)) {
+            if (!assign) {
+                virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                               _("All addresses should have been already assigned by now."));
+                goto cleanup;
+            }
             memset(&tmp_addr, 0, sizeof(tmp_addr));
             tmp_addr.slot = 1;
 
