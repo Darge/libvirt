@@ -917,13 +917,23 @@ qemuDomainValidateDevicePCISlotsChipsets(virDomainDefPtr def,
 
 static virDomainPCIAddressSetPtr
 qemuDomainPCIAddressSetCreate(virDomainDefPtr def,
-                              unsigned int nbuses,
                               virQEMUCapsPtr qemuCaps,
                               bool dryRun,
                               bool assign)
 {
     virDomainPCIAddressSetPtr addrs;
+    int max_idx = -1;
+    int nbuses = 0;
     size_t i;
+
+    for (i = 0; i < def->ncontrollers; i++) {
+        if (def->controllers[i]->type == VIR_DOMAIN_CONTROLLER_TYPE_PCI) {
+            if ((int) def->controllers[i]->idx > max_idx)
+                max_idx = def->controllers[i]->idx;
+        }
+    }
+
+    nbuses = max_idx + 1;
 
     if ((addrs = virDomainPCIAddressSetAlloc(nbuses)) == NULL)
         return NULL;
@@ -1493,7 +1503,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
         virDomainDeviceInfo info;
 
         /* 1st pass to figure out how many PCI bridges we need */
-        if (!(addrs = qemuDomainPCIAddressSetCreate(def, nbuses, qemuCaps,
+        if (!(addrs = qemuDomainPCIAddressSetCreate(def, qemuCaps,
                                                     true, true)))
             goto cleanup;
 
@@ -1530,7 +1540,6 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
                 virDomainPCIAddressReserveNextSlot(addrs, &info, flags) < 0)
                 goto cleanup;
         }
-        nbuses = addrs->nbuses;
         virDomainPCIAddressSetFree(addrs);
         addrs = NULL;
 
@@ -1542,7 +1551,7 @@ qemuDomainAssignPCIAddresses(virDomainDefPtr def,
     }
 
     if (qemuDomainSupportsPCI(def, qemuCaps)) {
-        if (!(addrs = qemuDomainPCIAddressSetCreate(def, nbuses, qemuCaps,
+        if (!(addrs = qemuDomainPCIAddressSetCreate(def, qemuCaps,
                                                     false, true)))
             goto cleanup;
 
