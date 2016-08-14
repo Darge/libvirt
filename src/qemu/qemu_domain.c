@@ -1328,7 +1328,6 @@ qemuDomainObjPrivateFree(void *data)
     virObjectUnref(priv->qemuCaps);
 
     virCgroupFree(&priv->cgroup);
-    virDomainPCIAddressSetFree(priv->pciaddrs);
     virDomainUSBAddressSetFree(priv->usbaddrs);
     virDomainChrSourceDefFree(priv->monConfig);
     qemuDomainObjFreeJob(priv);
