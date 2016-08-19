@@ -51,6 +51,9 @@ qemuDomainPCIAddressSetCreate(virDomainDefPtr def,
                               bool dryRun,
                               bool assign);
 
+virDomainUSBAddressSetPtr
+qemuDomainUSBAddrSetCreateFromDomain(virDomainDefPtr def);
+
 # define __QEMU_DOMAIN_ADDRESS_H__
 
 #endif /* __QEMU_DOMAIN_ADDRESS_H__ */

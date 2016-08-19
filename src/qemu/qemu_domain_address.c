@@ -1743,6 +1743,42 @@ qemuDomainUSBAddressAddHubs(virDomainDefPtr def)
 }
 
 
+virDomainUSBAddressSetPtr
+qemuDomainUSBAddrSetCreateFromDomain(virDomainDefPtr def)
+{
+    virDomainUSBAddressSetPtr addrs = NULL;
+
+    if (!(addrs = virDomainUSBAddressSetCreate()))
+        goto error;
+
+    if (qemuDomainUSBAddressAddHubs(def) < 0)
+        goto error;
+
+    if (virDomainUSBAddressSetAddControllers(addrs, def) < 0)
+        goto error;
+
+    if (virDomainUSBDeviceDefForeach(def, virDomainUSBAddressReserve, addrs,
+                                     true) < 0)
+        goto error;
+
+    VIR_DEBUG("Existing USB addresses have been reserved");
+
+    if (qemuDomainAssignUSBHubs(addrs, def) < 0)
+        goto error;
+
+    if (qemuDomainAssignUSBPorts(addrs, def) < 0)
+        goto error;
+
+    VIR_DEBUG("Finished assigning USB ports");
+
+    return addrs;
+
+ error:
+    virDomainUSBAddressSetFree(addrs);
+    return NULL;
+}
+
+
 static int
 qemuDomainAssignUSBAddresses(virDomainDefPtr def,
                              virDomainObjPtr obj)
@@ -1751,34 +1787,15 @@ qemuDomainAssignUSBAddresses(virDomainDefPtr def,
     virDomainUSBAddressSetPtr addrs = NULL;
     qemuDomainObjPrivatePtr priv = NULL;
 
-    if (!(addrs = virDomainUSBAddressSetCreate()))
+    if (!(addrs = qemuDomainUSBAddrSetCreateFromDomain(def)))
         goto cleanup;
-
-    if (qemuDomainUSBAddressAddHubs(def) < 0)
-        goto cleanup;
-
-    if (virDomainUSBAddressSetAddControllers(addrs, def) < 0)
-        goto cleanup;
-
-    if (virDomainUSBDeviceDefForeach(def, virDomainUSBAddressReserve, addrs,
-                                     true) < 0)
-        goto cleanup;
-
-    VIR_DEBUG("Existing USB addresses have been reserved");
-
-    if (qemuDomainAssignUSBHubs(addrs, def) < 0)
-        goto cleanup;
-
-    if (qemuDomainAssignUSBPorts(addrs, def) < 0)
-        goto cleanup;
-
-    VIR_DEBUG("Finished assigning USB ports");
 
     if (obj && obj->privateData) {
         priv = obj->privateData;
         priv->usbaddrs = addrs;
         addrs = NULL;
     }
+
     ret = 0;
 
  cleanup:
