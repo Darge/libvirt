@@ -184,8 +184,6 @@ struct _qemuDomainObjPrivate {
     bool beingDestroyed;
     char *pidfile;
 
-    virDomainUSBAddressSetPtr usbaddrs;
-
     virQEMUCapsPtr qemuCaps;
     char *lockState;
 

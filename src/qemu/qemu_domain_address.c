@@ -1780,21 +1780,13 @@ qemuDomainUSBAddrSetCreateFromDomain(virDomainDefPtr def)
 
 
 static int
-qemuDomainAssignUSBAddresses(virDomainDefPtr def,
-                             virDomainObjPtr obj)
+qemuDomainAssignUSBAddresses(virDomainDefPtr def)
 {
     int ret = -1;
     virDomainUSBAddressSetPtr addrs = NULL;
-    qemuDomainObjPrivatePtr priv = NULL;
 
     if (!(addrs = qemuDomainUSBAddrSetCreateFromDomain(def)))
         goto cleanup;
-
-    if (obj && obj->privateData) {
-        priv = obj->privateData;
-        priv->usbaddrs = addrs;
-        addrs = NULL;
-    }
 
     ret = 0;
 
@@ -1807,7 +1799,6 @@ qemuDomainAssignUSBAddresses(virDomainDefPtr def,
 int
 qemuDomainAssignAddresses(virDomainDefPtr def,
                           virQEMUCapsPtr qemuCaps,
-                          virDomainObjPtr obj,
                           bool newDomain)
 {
     if (qemuDomainAssignVirtioSerialAddresses(def) < 0)
@@ -1824,26 +1815,8 @@ qemuDomainAssignAddresses(virDomainDefPtr def,
     if (qemuDomainAssignPCIAddresses(def, qemuCaps) < 0)
         return -1;
 
-    if (newDomain && qemuDomainAssignUSBAddresses(def, obj) < 0)
+    if (newDomain && qemuDomainAssignUSBAddresses(def) < 0)
         return -1;
 
     return 0;
-}
-
-
-void
-qemuDomainReleaseDeviceAddress(virDomainObjPtr vm,
-                               virDomainDeviceInfoPtr info,
-                               const char *devstr)
-{
-    qemuDomainObjPrivatePtr priv = vm->privateData;
-
-    if (!devstr)
-        devstr = info->alias;
-
-    if (info->type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_USB &&
-        priv->usbaddrs &&
-        virDomainUSBAddressRelease(priv->usbaddrs, info) < 0)
-        VIR_WARN("Unable to release USB address on %s",
-                 NULLSTR(devstr));
 }
