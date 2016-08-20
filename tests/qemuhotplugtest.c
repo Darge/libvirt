@@ -457,9 +457,12 @@ mymain(void)
     DO_TEST_ATTACH("base-live", "disk-usb", false, true,
                    "human-monitor-command", HMP("OK\\r\\n"),
                    "device_add", QMP_OK);
-    DO_TEST_DETACH("base-live", "disk-usb", false, false,
+    DO_TEST_DETACH("base-live", "disk-usb", false, true,
                    "device_del", QMP_OK,
                    "human-monitor-command", HMP(""));
+    DO_TEST_ATTACH("base-live", "disk-usb", false, false,
+                   "human-monitor-command", HMP("OK\\r\\n"),
+                   "device_add", QMP_OK);
 
     DO_TEST_ATTACH_EVENT("base-live", "disk-usb", false, true,
                          "human-monitor-command", HMP("OK\\r\\n"),
